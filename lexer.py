@@ -177,14 +177,13 @@ class MyLexer(object):
         self.lexer = lex.lex(module=self, **kwargs)
 
     # Test it output
-    def test(self,data):
+    def input(self,data):
         self.lexer.input(data)
-        while True:
-            tok = self.lexer.token()
-            if not tok: 
-                break
-            print(tok)
 
+    def token(self):
+        tok = self.lexer.token()
+        return tok
+'''
 # Build the lexer and try it out
 m = MyLexer()
 m.build()           # Build the lexer
@@ -194,3 +193,4 @@ f = open(sys.argv[1])
 codigo = ''.join(f.readlines())
 m.test(codigo)     # Test it
 
+'''
