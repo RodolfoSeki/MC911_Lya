@@ -59,7 +59,8 @@ class MyLexer(object):
             'MINUS',
             'TIMES',
             'DIVIDE',
-            'ASSIGN',
+            'MODULO',
+            'EQUALS',
             'SEMI',
             'ARROW',
             'LPAREN',
@@ -84,7 +85,8 @@ class MyLexer(object):
     t_MINUS = r'-'
     t_TIMES = r'\*'
     t_DIVIDE = r'/'
-    t_ASSIGN = r'='
+    t_MODULO = r'%'
+    t_EQUALS = r'='
     t_SEMI = r';'
     t_ARROW = r'->'
     t_LPAREN  = r'\('
@@ -100,18 +102,32 @@ class MyLexer(object):
     t_LT = r'<'
     t_LEQ = r'<='
     t_COLON = r':'
-    t_COMMA = r','
+    t_COMMA = r'\,'
     t_NOT = r'!'
 
     # A regular expression rule with some action code
     # Note addition of self parameter since we're in a class
     def t_ICONST(self,t):
         r'\d+'
-        t.value = int(t.value)    
+        return t
+
+    def t_CCONST(self,t):
+        r'\'[^\\]\'|\'\^\(\d+\)\'|\'\\[nt\\]\''
+        if "^(" in t.value:
+            t.value = int(t.value[3:-2])
+        elif '\\' in t.value:
+            if t.value[2] == 'n':
+                t.value = 10
+            elif t.value[2] == 't':
+                t.value = 11
+            else:
+                t.value = 92 
+        else:
+            t.value = ord(t.value[1])
         return t
 
     def t_ID(self,t):
-        r'[A-Za-z_][\dA-Za-z_]*'
+        r'[A-Za-z_][\w_]*'
         t.type = MyLexer.reserved.get(t.value, 'ID')
         return t
 
@@ -120,11 +136,12 @@ class MyLexer(object):
         pass
 
     def t_COMMENT(self, t):
-        r'\/\*.*\*\/'
+        r'\/\*(.|\n)*\*\/'
         pass
 
     def t_SCONST(self, t):
-        r'\".*\"'
+        #r'\"([^\"]*)\"'
+        r'\"(\\.|[^\\"])*\"'
         return t
 
     # Define a rule so we can track line numbers
@@ -151,8 +168,8 @@ class MyLexer(object):
         t.lexer.skip(1)
 
     def t_badescape(self,t):
-        r'\a|\r|\f|\v|\\|\'|\"|\?|\b'
-        print ("{}: Bad string escape code '\\..'".format(t.lexer.lineno))
+        r'\a|\r|\f|\v'
+        print ("{}: Bad string escape code '{}'".format(t.lexer.lineno, t.value))
         t.lexer.skip(1)
 
     # Build the lexer
