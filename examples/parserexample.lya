@@ -1,0 +1,3 @@
+dcl a, b, c int = 4;
+dcl a int, b char, c int = 4;
+dcl b int = 4;

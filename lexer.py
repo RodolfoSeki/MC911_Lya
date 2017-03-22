@@ -102,7 +102,7 @@ class MyLexer(object):
     t_LT = r'<'
     t_LEQ = r'<='
     t_COLON = r':'
-    t_COMMA = r'\,'
+    t_COMMA = r','
     t_NOT = r'!'
 
     # A regular expression rule with some action code
@@ -182,6 +182,7 @@ class MyLexer(object):
 
     def token(self):
         tok = self.lexer.token()
+        print (tok)
         return tok
 '''
 # Build the lexer and try it out

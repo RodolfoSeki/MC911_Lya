@@ -5,9 +5,9 @@ _tabversion = '3.8'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'E97277AFFA6EBE670AFD5CB8E04B45B3'
+_lr_signature = '81535D2FF498AA3542D0E63FA97030F2'
     
-_lr_action_items = {'RPAREN':([1,3,4,5,9,12,13,14,15,16,],[-3,-6,-7,-8,14,-5,-4,-9,-1,-2,]),'DIVIDE':([1,3,4,5,12,13,14,15,16,],[7,-6,-7,-8,-5,-4,-9,7,7,]),'TIMES':([1,3,4,5,12,13,14,15,16,],[8,-6,-7,-8,-5,-4,-9,8,8,]),'ICONST':([0,2,7,8,10,11,],[4,4,4,4,4,4,]),'LPAREN':([0,2,7,8,10,11,],[2,2,2,2,2,2,]),'PLUS':([1,3,4,5,6,9,12,13,14,15,16,],[-3,-6,-7,-8,10,10,-5,-4,-9,-1,-2,]),'MINUS':([1,3,4,5,6,9,12,13,14,15,16,],[-3,-6,-7,-8,11,11,-5,-4,-9,-1,-2,]),'ID':([0,2,7,8,10,11,],[5,5,5,5,5,5,]),'$end':([1,3,4,5,6,12,13,14,15,16,],[-3,-6,-7,-8,0,-5,-4,-9,-1,-2,]),}
+_lr_action_items = {'BOOL':([9,10,11,21,],[15,-11,-13,-12,]),'$end':([1,2,3,4,6,12,],[-1,0,-2,-4,-3,-5,]),'MODULO':([24,26,28,34,],[-21,-23,32,-22,]),'EQUALS':([14,15,16,18,19,],[-14,-16,-17,23,-15,]),'COMMA':([7,8,9,10,11,14,15,16,18,19,20,21,22,24,25,26,27,28,29,34,],[13,-6,17,-11,-13,-14,-16,-17,-8,-15,-7,-12,-9,-21,-18,-23,-10,-20,-19,-22,]),'ICONST':([23,30,31,32,33,],[26,-24,26,-26,-25,]),'CHAR':([9,10,11,21,],[16,-11,-13,-12,]),'INT':([9,10,11,21,],[19,-11,-13,-12,]),'DIVIDE':([24,26,28,34,],[-21,-23,33,-22,]),'SEMI':([7,8,14,15,16,18,19,20,22,24,25,26,27,28,29,34,],[12,-6,-14,-16,-17,-8,-15,-7,-9,-21,-18,-23,-10,-20,-19,-22,]),'TIMES':([24,26,28,34,],[-21,-23,30,-22,]),'ID':([5,13,17,],[11,11,11,]),'DCL':([0,1,3,4,6,12,],[5,5,-2,-4,-3,-5,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'term':([0,2,10,11,],[1,1,15,16,]),'expression':([0,2,],[6,9,]),'factor':([0,2,7,8,10,11,],[3,3,12,13,3,3,]),}
+_lr_goto_items = {'statement_list':([0,],[1,]),'declaration_list':([5,],[7,]),'declaration':([5,13,],[8,20,]),'arithmetic_multiplicative_operator':([28,],[31,]),'operand0':([23,],[25,]),'statement':([0,1,],[3,6,]),'mode':([9,],[18,]),'initialization':([18,],[22,]),'expression':([23,],[27,]),'identifier':([5,13,17,],[10,10,21,]),'identifier_list':([5,13,],[9,9,]),'program':([0,],[2,]),'operand3':([23,31,],[24,34,]),'declaration_statement':([0,1,],[4,4,]),'discrete_mode':([9,],[14,]),'operand1':([23,],[29,]),'operand2':([23,],[28,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -25,14 +25,31 @@ for _k, _v in _lr_goto_items.items():
        _lr_goto[_x][_k] = _y
 del _lr_goto_items
 _lr_productions = [
-  ("S' -> expression","S'",1,None,None,None),
-  ('expression -> expression PLUS term','expression',3,'p_expression_plus','parser.py',21),
-  ('expression -> expression MINUS term','expression',3,'p_expression_minus','parser.py',25),
-  ('expression -> term','expression',1,'p_expression_term','parser.py',29),
-  ('term -> term TIMES factor','term',3,'p_term_times','parser.py',33),
-  ('term -> term DIVIDE factor','term',3,'p_term_div','parser.py',37),
-  ('term -> factor','term',1,'p_term_factor','parser.py',41),
-  ('factor -> ICONST','factor',1,'p_factor_num','parser.py',45),
-  ('factor -> ID','factor',1,'p_factor_id','parser.py',49),
-  ('factor -> LPAREN expression RPAREN','factor',3,'p_factor_expr','parser.py',53),
+  ("S' -> program","S'",1,None,None,None),
+  ('program -> statement_list','program',1,'p_program','parser.py',23),
+  ('statement_list -> statement','statement_list',1,'p_statement_list','parser.py',27),
+  ('statement_list -> statement_list statement','statement_list',2,'p_statement_list','parser.py',28),
+  ('statement -> declaration_statement','statement',1,'p_statement','parser.py',37),
+  ('declaration_statement -> DCL declaration_list SEMI','declaration_statement',3,'p_declaration_statement','parser.py',43),
+  ('declaration_list -> declaration','declaration_list',1,'p_declaration_list','parser.py',47),
+  ('declaration_list -> declaration_list COMMA declaration','declaration_list',3,'p_declaration_list','parser.py',48),
+  ('declaration -> identifier_list mode','declaration',2,'p_declaration','parser.py',58),
+  ('declaration -> identifier_list mode initialization','declaration',3,'p_declaration','parser.py',59),
+  ('initialization -> EQUALS expression','initialization',2,'p_initialization','parser.py',68),
+  ('identifier_list -> identifier','identifier_list',1,'p_identifier_list','parser.py',74),
+  ('identifier_list -> identifier_list COMMA identifier','identifier_list',3,'p_identifier_list','parser.py',75),
+  ('identifier -> ID','identifier',1,'p_identifier','parser.py',83),
+  ('mode -> discrete_mode','mode',1,'p_mode','parser.py',87),
+  ('discrete_mode -> INT','discrete_mode',1,'p_discrete_mode','parser.py',94),
+  ('discrete_mode -> BOOL','discrete_mode',1,'p_discrete_mode','parser.py',95),
+  ('discrete_mode -> CHAR','discrete_mode',1,'p_discrete_mode','parser.py',96),
+  ('expression -> operand0','expression',1,'p_expression','parser.py',102),
+  ('operand0 -> operand1','operand0',1,'p_operand0','parser.py',108),
+  ('operand1 -> operand2','operand1',1,'p_operand1','parser.py',113),
+  ('operand2 -> operand3','operand2',1,'p_operand2','parser.py',119),
+  ('operand2 -> operand2 arithmetic_multiplicative_operator operand3','operand2',3,'p_operand2','parser.py',120),
+  ('operand3 -> ICONST','operand3',1,'p_operand3','parser.py',125),
+  ('arithmetic_multiplicative_operator -> TIMES','arithmetic_multiplicative_operator',1,'p_arithmetic_multiplicative_operator','parser.py',131),
+  ('arithmetic_multiplicative_operator -> DIVIDE','arithmetic_multiplicative_operator',1,'p_arithmetic_multiplicative_operator','parser.py',132),
+  ('arithmetic_multiplicative_operator -> MODULO','arithmetic_multiplicative_operator',1,'p_arithmetic_multiplicative_operator','parser.py',133),
 ]
