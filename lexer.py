@@ -179,10 +179,11 @@ class MyLexer(object):
     # Test it output
     def input(self,data):
         self.lexer.input(data)
+        print (data)
 
     def token(self):
         tok = self.lexer.token()
-        print (tok)
+        #print (tok)
         return tok
 '''
 # Build the lexer and try it out

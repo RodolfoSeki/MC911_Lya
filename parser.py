@@ -47,7 +47,6 @@ class MyParser(object):
         '''declaration_list : declaration
                             | declaration_list COMMA declaration
         '''
-        print (p[1])
         if len(p) == 2:
             p[0] = [p[1]]
         else:
@@ -77,7 +76,7 @@ class MyParser(object):
         if len(p) == 2:
             p[0] = [p[1]]
         else:
-            p[0] = p[1] + [p[2]]
+            p[0] = p[1] + [p[3]]
 
     def p_identifier(self, p):
         '''identifier : ID '''
@@ -85,18 +84,27 @@ class MyParser(object):
 
     def p_mode(self, p):
         ''' mode : discrete_mode
+                 | identifier
+                 | reference_mode
         '''
         # TODO completar
         p[0] = p[1]
 
 
     def p_discrete_mode(self, p):
-        ''' discrete_mode : INT 
-                          | BOOL
-                          | CHAR
+        ''' discrete_mode : primitive_mode 
         '''
         # TODO completar
-        p[0] = ast.DiscreteMode(p[1])
+        p[0] = p[1]
+
+
+    def p_primitive_mode(self, p):
+        ''' primitive_mode : INT
+                           | BOOL
+                           | CHAR
+        '''
+        # TODO completar
+        p[0] = ast.PrimitiveMode(p[1])
                             
     def p_expression(self, p):
         ''' expression : operand0'''
