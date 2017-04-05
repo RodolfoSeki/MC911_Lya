@@ -82,84 +82,6 @@ class MyParser(object):
         '''identifier : ID '''
         p[0] = ast.Identifier(p[1])
 
-    def p_mode(self, p):
-        ''' mode : discrete_mode
-                 | identifier
-                 | reference_mode
-        '''
-        # TODO completar
-        p[0] = p[1]
-
-
-    def p_discrete_mode(self, p):
-        ''' discrete_mode : primitive_mode 
-        '''
-        # TODO completar
-        p[0] = p[1]
-
-
-    def p_primitive_mode(self, p):
-        ''' primitive_mode : INT
-                           | BOOL
-                           | CHAR
-        '''
-        # TODO completar
-        p[0] = ast.PrimitiveMode(p[1])
-                            
-    def p_expression(self, p):
-        ''' expression : operand0'''
-        # TODO completar
-        p[0] = ast.Expression(p[1])
-
-
-    def p_operand0(self, p):
-        ''' operand0 : operand1 '''
-        #TODO completar
-        p[0] = ast.Operand0(p[1])
-
-    def p_operand1(self, p):
-        ''' operand1 : operand2 
-        '''
-        #TODO completar
-        p[0] = ast.Operand1(p[1])
-
-    def p_operand2(self, p):
-        ''' operand2 : operand3 
-                     | operand2 arithmetic_multiplicative_operator operand3
-        '''
-        p[0] = ast.Operand2(*p[1:])
-
-    def p_operand3(self, p):
-        ''' operand3 : ICONST
-        '''
-        #TODO completar
-        p[0] = ast.Operand3(p[1])
-
-    def p_arithmetic_multiplicative_operator(self, p):
-        ''' arithmetic_multiplicative_operator : TIMES
-                                               | DIVIDE
-                                               | MODULO 
-        '''
-        p[0] = p[1]
-
-    def p_statement(self, p):
-        ''' statement : declaration_statement
-                      | synonym_statement
-                      | newmode_statement
-                      | procedure_statement
-                      | action_statement
-        '''
-        #TODO completar
-        p[0] = ast.Statement()
-
-
-
-
-
-
-
-
-
 
 
 
@@ -229,8 +151,7 @@ class MyParser(object):
                  | reference_mode
                  | composite_mode
         '''
-        #TODO completar
-        p[0] = ast.Mode()
+        p[0] = ast.Mode(p[1])
 
 
     def p_discrete_mode(self, p):
@@ -239,127 +160,106 @@ class MyParser(object):
                           | character_mode
                           | discrete_range_mode
         '''
-        #TODO completar
-        p[0] = ast.DiscreteMode()
+        p[0] = ast.DiscreteMode(p[1])
 
 
     def p_integer_mode(self, p):
         ''' integer_mode : INT
         '''
-        #TODO completar
         p[0] = ast.IntegerMode()
 
 
     def p_boolean_mode(self, p):
         ''' boolean_mode : BOOL
         '''
-        #TODO completar
         p[0] = ast.BooleanMode()
 
 
     def p_character_mode(self, p):
         ''' character_mode : CHAR
         '''
-        #TODO completar
         p[0] = ast.CharacterMode()
 
 
     def p_discrete_range_mode(self, p):
-        ''' discrete_range_mode : discrete_mode_name ( literal_range )
-                                | discrete_mode ( literal_range )
+        ''' discrete_range_mode : discrete_mode_name LPAREN literal_range RPAREN
+                                | discrete_mode LPAREN literal_range RPAREN
         '''
-        #TODO completar
-        p[0] = ast.DiscreteRangeMode()
+        p[0] = ast.DiscreteRangeMode(p[1], p[3])
 
 
     def p_mode_name(self, p):
         ''' mode_name : identifier
         '''
-        #TODO completar
-        p[0] = ast.ModeName()
+        p[0] = ast.ModeName(p[1])
 
 
     def p_discrete_mode_name(self, p):
         ''' discrete_mode_name : identifier
         '''
-        #TODO completar
-        p[0] = ast.DiscreteModeName()
+        p[0] = p[1]
 
 
     def p_literal_range(self, p):
-        ''' literal_range : lower_bound : upper_bound
+        ''' literal_range : lower_bound COLON upper_bound
         '''
-        #TODO completar
-        p[0] = ast.LiteralRange()
-
+        p[0] = ast.LiteralRange(p[1], p[3])
 
     def p_lower_bound(self, p):
         ''' lower_bound : expression
         '''
-        #TODO completar
-        p[0] = ast.LowerBound()
-
+        p[0] = p[1]
 
     def p_upper_bound(self, p):
         ''' upper_bound : expression
         '''
-        #TODO completar
-        p[0] = ast.UpperBound()
-
+        p[0] = p[1]
 
     def p_reference_mode(self, p):
         ''' reference_mode : REF mode
         '''
-        #TODO completar
-        p[0] = ast.ReferenceMode()
-
+        p[0] = ast.ReferenceMode(p[2])
 
     def p_composite_mode(self, p):
         ''' composite_mode : string_mode
                            | array_mode
         '''
-        #TODO completar
-        p[0] = ast.CompositeMode()
-
+        p[0] = p[1]
 
     def p_string_mode(self, p):
         ''' string_mode : CHARS LBRACKET string_length RBRACKET
         '''
-        #TODO completar
-        p[0] = ast.StringMode()
+        p[0] = ast.StringMode(p[3])
 
 
     def p_string_length(self, p):
         ''' string_length : integer_literal
         '''
-        #TODO completar
-        p[0] = ast.StringLength()
-
+        p[0] = p[1]
 
     def p_array_mode(self, p):
-        ''' array_mode : ARRAY LBRACKET index_mode { , index_mode }* RBRACKET element_mode
+        ''' array_mode : ARRAY LBRACKET list_index_mode RBRACKET mode
         '''
-        #TODO completar
-        p[0] = ast.ArrayMode()
+        p[0] = ast.ArrayMode(p[3], p[5])
 
+    def p_list_index_mode(self, p):
+        ''' list_index_mode : index_mode
+                            | list_index_mode COMMA index_mode
+        '''
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
 
     def p_index_mode(self, p):
         ''' index_mode : discrete_mode
                        | literal_range
         '''
-        #TODO completar
-        p[0] = ast.IndexMode()
-
-
-    def p_element_mode(self, p):
-        ''' element_mode : mode
-        '''
-        #TODO completar
-        p[0] = ast.ElementMode()
+        p[0] = p[1]
 
 
     def p_location(self, p):
-        ''' location : location_name
+        ''' location : identifier
                      | dereferenced_reference
                      | string_element
                      | string_slice
@@ -367,85 +267,77 @@ class MyParser(object):
                      | array_slice
                      | call_action
         '''
-        #TODO completar
-        p[0] = ast.Location()
+        p[0] = ast.Location(p[1])
 
 
     def p_dereferenced_reference(self, p):
         ''' dereferenced_reference : location ARROW
         '''
-        #TODO completar
-        p[0] = ast.DereferencedReference()
+        p[0] = ast.DereferencedReference(p[1])
 
 
     def p_string_element(self, p):
         ''' string_element : string_location LBRACKET start_element RBRACKET
         '''
-        #TODO completar
-        p[0] = ast.StringElement()
+        p[0] = ast.StringElement(p[1], p[3])
 
 
     def p_start_element(self, p):
-        ''' start_element : integer_expression
+        ''' start_element : expression
         '''
-        #TODO completar
-        p[0] = ast.StartElement()
+        p[0] = p[1]
 
 
     def p_string_slice(self, p):
-        ''' string_slice : string_location LBRACKET left_element : right_element RBRACKET
+        ''' string_slice : string_location LBRACKET left_element COLON right_element RBRACKET
         '''
-        #TODO completar
-        p[0] = ast.StringSlice()
+        p[0] = ast.StringSlice(p[1], p[3], p[5])
 
 
     def p_string_location(self, p):
         ''' string_location : identifier
         '''
-        #TODO completar
-        p[0] = ast.StringLocation()
+        p[0] = p[1]
 
 
     def p_left_element(self, p):
-        ''' left_element : integer_expression
+        ''' left_element : expression
         '''
-        #TODO completar
-        p[0] = ast.LeftElement()
+        p[0] = p[1]
 
 
     def p_right_element(self, p):
-        ''' right_element : integer_expression
+        ''' right_element : expression
         '''
-        #TODO completar
-        p[0] = ast.RightElement()
+        p[0] = p[1]
 
 
     def p_array_element(self, p):
         ''' array_element : array_location LBRACKET expression_list RBRACKET
         '''
-        #TODO completar
-        p[0] = ast.ArrayElement()
+        p[0] = ast.ArrayElement(p[1], p[3])
 
 
     def p_expression_list(self, p):
-        ''' expression_list : expression { , expression }*
+        ''' expression_list : expression
+                            | expression_list COMMA expression
         '''
-        #TODO completar
-        p[0] = ast.ExpressionList()
+        if len(p) == 2:
+            p[0] = [p[1]]
+        else:
+            p[0] = p[1] + [p[3]]
 
 
     def p_array_slice(self, p):
-        ''' array_slice : array_location LBRACKET lower_bound : upper_bound RBRACKET
+        ''' array_slice : array_location LBRACKET lower_bound COLON upper_bound RBRACKET
         '''
-        #TODO completar
-        p[0] = ast.ArraySlice()
+        p[0] = ast.ArraySlice(p[1], p[3], p[5])
 
 
     def p_array_location(self, p):
         ''' array_location : location
         '''
-        #TODO completar
-        p[0] = ast.ArrayLocation()
+        p[0] = p[1]
 
 
     def p_primitive_value(self, p):
@@ -454,8 +346,7 @@ class MyParser(object):
                             | value_array_slice
                             | parenthesized_expression
         '''
-        #TODO completar
-        p[0] = ast.PrimitiveValue()
+        p[0] = ast.PrimitiveValue(p[1])
 
 
     def p_literal(self, p):
@@ -472,38 +363,33 @@ class MyParser(object):
     def p_integer_literal(self, p):
         ''' integer_literal : ICONST
         '''
-        #TODO completar
-        p[0] = ast.IntegerLiteral()
+        p[0] = ast.IntegerLiteral(p[1])
 
 
     def p_boolean_literal(self, p):
         ''' boolean_literal : FALSE
                             | TRUE
         '''
-        #TODO completar
-        p[0] = ast.BooleanLiteral()
+        p[0] = ast.BooleanLiteral(p[1])
 
 
     def p_character_literal(self, p):
-        ''' character_literal : 'character'
-                              | '^( integer_literal )'
+        ''' character_literal : CCONST
         '''
-        #TODO completar
-        p[0] = ast.CharacterLiteral()
+        p[0] = ast.CharacterLiteral(p[1])
 
 
     def p_empty_literal(self, p):
         ''' empty_literal : NULL
         '''
-        #TODO completar
         p[0] = ast.EmptyLiteral()
 
 
     def p_character_string_literal(self, p):
-        ''' character_string_literal : " { character }* "
+        ''' character_string_literal : SCONST
         '''
         #TODO completar
-        p[0] = ast.CharacterStringLiteral()
+        p[0] = ast.CharacterStringLiteral(p[1])
 
 
     def p_value_array_element(self, p):
@@ -538,53 +424,55 @@ class MyParser(object):
         ''' expression : operand0
                        | conditional_expression
         '''
-        #TODO completar
-        p[0] = ast.Expression()
+        p[0] = ast.Expression(p[1])
 
 
     def p_conditional_expression(self, p):
         ''' conditional_expression : IF boolean_expression then_expression else_expression FI
                                    | IF boolean_expression then_expression elsif_expression else_expression FI
         '''
-        #TODO completar
-        p[0] = ast.ConditionalExpression()
+        if len(p) == 6:
+            p[0] = ast.ConditionalExpression(p[2], p[3], else_expr=p[4])
+        else:
+            p[0] = ast.ConditionalExpression(p[2], p[3], p[4], p[5])
 
 
     def p_boolean_expression(self, p):
         ''' boolean_expression : expression
         '''
-        #TODO completar
-        p[0] = ast.BooleanExpression()
+        p[0] = ast.BooleanExpression(p[1])
 
 
     def p_then_expression(self, p):
         ''' then_expression : THEN expression
         '''
-        #TODO completar
-        p[0] = ast.ThenExpression()
+        p[0] = ast.ThenExpression(p[2])
 
 
     def p_else_expression(self, p):
         ''' else_expression : ELSE expression
         '''
-        #TODO completar
-        p[0] = ast.ElseExpression()
+        p[0] = ast.ElseExpression(p[2])
 
 
     def p_elsif_expression(self, p):
         ''' elsif_expression : ELSIF boolean_expression then_expression
                              | elsif_expression ELSIF boolean_expression then_expression
         '''
-        #TODO completar
-        p[0] = ast.ElsifExpression()
+        if len(p) == 4:
+            p[0] = ast.ElsifExpression(p[2], p[3])
+        else:
+            p[0] = ast.ElsifExpression(p[3], p[4], p[1])
 
 
     def p_operand0(self, p):
         ''' operand0 : operand1
                      | operand0 operator1 operand1
         '''
-        #TODO completar
-        p[0] = ast.Operand0()
+        if len(p) == 2:
+            p[0] = ast.Operand0(p[1])
+        else:
+            p[0] = ast.Operand0(p[3], p[1], p[2])
 
 
     def p_operator1(self, p):
@@ -592,77 +480,91 @@ class MyParser(object):
                       | membership_operator
         '''
         #TODO completar
-        p[0] = ast.Operator1()
+        p[0] = ast.Operator1(p[1])
 
 
     def p_relational_operator(self, p):
-        ''' relational_operator : &&
-                                | 
-                                | 
-                                | 
-                                | ==
-                                | !=
-                                | 
-                                | =
-                                | 
-                                | =
+        ''' relational_operator : AND
+                                | OR 
+                                | EQ 
+                                | NE
+                                | GT
+                                | GEQ
+                                | LT
+                                | LEQ
         '''
-        #TODO completar
-        p[0] = ast.RelationalOperator()
+        p[0] = p[1]
 
 
     def p_membership_operator(self, p):
         ''' membership_operator : IN
         '''
-        #TODO completar
-        p[0] = ast.MembershipOperator()
+        p[0] = p[1]
 
 
     def p_operand1(self, p):
         ''' operand1 : operand2
                      | operand1 operator2 operand2
         '''
-        #TODO completar
-        p[0] = ast.Operand1()
+        if len(p) == 2:
+            p[0] = ast.Operand1(p[1])
+        else:
+            p[0] = ast.Operand1(p[3], p[1], p[2])
 
 
     def p_operator2(self, p):
         ''' operator2 : arithmetic_additive_operator
                       | string_concatenation_operator
         '''
-        #TODO completar
-        p[0] = ast.Operator2()
+        p[0] = ast.Operator2(p[1])
 
 
     def p_arithmetic_additive_operator(self, p):
-        ''' arithmetic_additive_operator : +
-                                         | -
+        ''' arithmetic_additive_operator : PLUS
+                                         | MINUS
         '''
-        #TODO completar
-        p[0] = ast.ArithmeticAdditiveOperator()
+        p[0] = p[1]
 
 
     def p_string_concatenation_operator(self, p):
         ''' string_concatenation_operator : &
         '''
-        #TODO completar
-        p[0] = ast.StringConcatenationOperator()
+        p[0] = p[1]
 
+
+    def p_operand2(self, p):
+        ''' operand2 : operand3 
+                     | operand2 arithmetic_multiplicative_operator operand3
+        '''
+        if len(p) == 2:
+            p[0] = ast.Operand2(p[1])
+        else:
+            p[0] = ast.Operand2(p[3], p[1], p[2])
+
+
+    def p_arithmetic_multiplicative_operator(self, p):
+        ''' arithmetic_multiplicative_operator : TIMES
+                                               | DIVIDE
+                                               | MODULO 
+        '''
+        p[0] = p[1]
 
     def p_operand3(self, p):
-        ''' operand3 : [ monadic_operator ] operand4
+        ''' operand3 : operand4
+                     | monadic_operator operand4
                      | integer_literal
         '''
-        #TODO completar
-        p[0] = ast.Operand3()
+        if len(p) == 2:
+            p[0] = ast.Operand3(p[1]) 
+        else:
+            p[0] = ast.Operand3(p[2], p[1])
 
 
     def p_monadic_operator(self, p):
-        ''' monadic_operator : -
-                             | !
+        ''' monadic_operator : MINUS
+                             | NOT 
         '''
-        #TODO completar
-        p[0] = ast.MonadicOperator()
+        p[0] = p[1]
 
 
     def p_operand4(self, p):
@@ -670,8 +572,7 @@ class MyParser(object):
                      | referenced_location
                      | primitive_value
         '''
-        #TODO completar
-        p[0] = ast.Operand4()
+        p[0] = ast.Operand4(p[1])
 
 
     def p_referenced_location(self, p):
@@ -1021,49 +922,6 @@ class MyParser(object):
         '''
         #TODO completar
         p[0] = ast.CharacterString()
-
-
-
-#    def p_expression_plus(self, p):
-#        'expression : expression operator term'
-#        p[0] = p[1] + p[3]
-#
-#    def p_expression_plus(self, p):
-#        'expression : expression PLUS term'
-#        p[0] = p[1] + p[3]
-#
-#    def p_expression_minus(self, p):
-#        'expression : expression MINUS term'
-#        p[0] = p[1] - p[3]
-#
-#    def p_expression_term(self, p):
-#        'expression : term'
-#        p[0] = p[1]
-#
-#    def p_term_times(self, p):
-#        'term : term TIMES factor'
-#        p[0] = p[1] * p[3]
-#
-#    def p_term_div(self, p):
-#        'term : term DIVIDE factor'
-#        p[0] = p[1] / p[3]
-#
-#    def p_term_factor(self, p):
-#        'term : factor'
-#        p[0] = p[1]
-#
-#    def p_factor_num(self, p):
-#        'factor : ICONST'
-#        p[0] = int(p[1])
-#
-#    def p_factor_id(self, p):
-#        'factor : ID'
-#        p[0] = p[1]
-#
-#    def p_factor_expr(self, p):
-#        'factor : LPAREN expression RPAREN'
-#        p[0] = p[2]
-#
 
     # Error rule for syntax errors
     def p_error(self, p):
