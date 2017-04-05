@@ -68,6 +68,7 @@ class MyLexer(object):
             'LBRACKET',
             'RBRACKET',
             'AND',
+            'LAND',
             'OR',
             'EQ',
             'NE',
@@ -94,6 +95,7 @@ class MyLexer(object):
     t_LBRACKET = r'\['
     t_RBRACKET = r'\]'
     t_AND = r'&&'
+    t_LAND = r'&'
     t_OR = r'\|\|'
     t_EQ = r'=='
     t_NE = r'!='
