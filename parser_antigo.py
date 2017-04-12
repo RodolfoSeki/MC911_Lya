@@ -141,7 +141,7 @@ class MyParser(object):
 
 
     def p_mode(self, p):
-        ''' mode : identifier
+        ''' mode : mode_name
                  | discrete_mode
                  | reference_mode
                  | composite_mode
@@ -177,16 +177,38 @@ class MyParser(object):
 
 
     def p_discrete_range_mode(self, p):
-        ''' discrete_range_mode : identifier LPAREN literal_range RPAREN
+        ''' discrete_range_mode : discrete_mode_name LPAREN literal_range RPAREN
                                 | discrete_mode LPAREN literal_range RPAREN
         '''
         p[0] = ast.DiscreteRangeMode(p[1], p[3])
 
+
+    def p_mode_name(self, p):
+        ''' mode_name : identifier
+        '''
+        p[0] = ast.ModeName(p[1])
+
+
+    def p_discrete_mode_name(self, p):
+        ''' discrete_mode_name : identifier
+        '''
+        p[0] = p[1]
+
+
     def p_literal_range(self, p):
-        ''' literal_range : expression COLON expression
+        ''' literal_range : lower_bound COLON upper_bound
         '''
         p[0] = ast.LiteralRange(p[1], p[3])
 
+    def p_lower_bound(self, p):
+        ''' lower_bound : expression
+        '''
+        p[0] = p[1]
+
+    def p_upper_bound(self, p):
+        ''' upper_bound : expression
+        '''
+        p[0] = p[1]
 
     def p_reference_mode(self, p):
         ''' reference_mode : REF mode
@@ -200,10 +222,15 @@ class MyParser(object):
         p[0] = p[1]
 
     def p_string_mode(self, p):
-        ''' string_mode : CHARS LBRACKET literal RBRACKET
+        ''' string_mode : CHARS LBRACKET string_length RBRACKET
         '''
         p[0] = ast.StringMode(p[3])
 
+
+    def p_string_length(self, p):
+        ''' string_length : integer_literal
+        '''
+        p[0] = p[1]
 
     def p_array_mode(self, p):
         ''' array_mode : ARRAY LBRACKET list_index_mode RBRACKET mode
@@ -245,7 +272,7 @@ class MyParser(object):
 
 
     def p_string_element(self, p):
-        ''' string_element : identifier LBRACKET start_element RBRACKET
+        ''' string_element : string_location LBRACKET start_element RBRACKET
         '''
         p[0] = ast.StringElement(p[1], p[3])
 
@@ -257,9 +284,15 @@ class MyParser(object):
 
 
     def p_string_slice(self, p):
-        ''' string_slice : identifier LBRACKET left_element COLON right_element RBRACKET
+        ''' string_slice : string_location LBRACKET left_element COLON right_element RBRACKET
         '''
         p[0] = ast.StringSlice(p[1], p[3], p[5])
+
+
+    def p_string_location(self, p):
+        ''' string_location : identifier
+        '''
+        p[0] = p[1]
 
 
     def p_left_element(self, p):
@@ -291,7 +324,7 @@ class MyParser(object):
 
 
     def p_array_slice(self, p):
-        ''' array_slice : array_location LBRACKET expression COLON expression RBRACKET
+        ''' array_slice : array_location LBRACKET lower_bound COLON upper_bound RBRACKET
         '''
         p[0] = ast.ArraySlice(p[1], p[3], p[5])
 
@@ -359,7 +392,7 @@ class MyParser(object):
 
 
     def p_value_array_slice(self, p):
-        ''' value_array_slice : array_primitive_value LBRACKET expression COLON expression RBRACKET
+        ''' value_array_slice : array_primitive_value LBRACKET lower_bound COLON upper_bound RBRACKET
         '''
         p[0] = ast.ValueArraySlice(p[1], p[3], p[5])
 
@@ -507,7 +540,7 @@ class MyParser(object):
     def p_operand3(self, p):
         ''' operand3 : operand4
                      | monadic_operator operand4
-                     | literal
+                     | integer_literal
         '''
         if len(p) == 2:
             p[0] = ast.Operand3(p[1]) 

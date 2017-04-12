@@ -53,6 +53,34 @@ class Identifier(Node):
 
     attr_names = ('name',)
 
+class SynonymStatement(Node):
+    def __init__(self, synonym_list):
+        self.synonym_list = synonym_list 
+
+    def children(self):
+        listchildren = []
+        for synonym in self.synonym_list:
+            listchildren.append(synonym)
+        return listchildren
+
+    attr_names = ()
+
+class SynonymDefinition(Node):
+    def __init__(self, id_list, constant_exp, mode=None):
+        self.id_list = id_list
+        self.constant_exp = constant_exp
+        self.mode = mode
+
+    def children(self):
+        listchildren = []
+        if self.constant_exp is not None: listchildren.append(self.constant_exp)
+        if self.mode is not None: listchildren.append(self.mode)
+        for identifier in self.id_list:
+            listchildren.append(identifier)
+        return listchildren
+
+    attr_names = ()
+
 class Mode(Node):
     def __init__(self, mode):
         self.mode = mode 
@@ -278,7 +306,52 @@ class CharacterStringLiteral(Node):
 
     attr_names = ('string',)
 
-### value_array_element
+class CharacterStringLiteral(Node):
+    def __init__(self, string):
+        self.string = string
+
+    attr_names = ('string',)
+
+class ValueArrayElement(Node):
+    def __init__(self, value, exp_list):
+        self.value = value 
+        self.exp_list = exp_list
+
+    def children(self):
+        listchildren = []
+        if self.value is not None: listchildren.append(self.value)
+        for exp in exp_list:
+            listchildren.append(exp)
+        return listchildren
+
+    attr_names = ()
+
+
+class ValueArraySlice(Node):
+    def __init__(self, value, lower, upper):
+        self.value = value 
+        self.lower = lower
+        self.upper = upper
+
+    def children(self):
+        listchildren = []
+        if self.value is not None: listchildren.append(self.value)
+        if self.lower is not None: listchildren.append(self.lower)
+        if self.upper is not None: listchildren.append(self.upper)
+        return listchildren
+
+    attr_names = ()
+
+class ParenthesizedExpression(Node):
+    def __init__(self, expr):
+        self.expr = expr 
+
+    def children(self):
+        listchildren = []
+        if self.expr is not None: listchildren.append(self.expr)
+        return listchildren
+
+    attr_names = ()
 
 class Expression(Node):
     def __init__(self, expr):
@@ -292,18 +365,18 @@ class Expression(Node):
     attr_names = ()
 
 class ConditionalExpression(Node):
-    def __init__(self, if_expr, then_expr, elsif_expr=None, else_expr):
+    def __init__(self, if_expr, then_expr, else_expr, elsif_expr=None, ):
         self.if_expr = if_expr
         self.then_expr = then_expr 
-        self.elsif_expr = elsif_expr
         self.else_expr = else_expr
+        self.elsif_expr = elsif_expr
 
     def children(self):
         listchildren = []
         if self.if_expr is not None: listchildren.append(self.if_expr)
         if self.then_expr is not None: listchildren.append(self.then_expr)
-        if self.elsif_expr is not None: listchildren.append(self.elsif_expr)
         if self.else_expr is not None: listchildren.append(self.else_expr)
+        if self.elsif_expr is not None: listchildren.append(self.elsif_expr)
         return listchildren
 
     attr_names = ()
@@ -438,4 +511,359 @@ class Operand4(Node):
 
     attr_names = ()
 
+
+class ReferencedLocation(Node):
+    def __init__(self, location):
+        self.location = location
+
+    def children(self):
+        listchildren = []
+        if self.location is not None: listchildren.append(self.location)
+        return listchildren
+
+    attr_names = ()
+
+
+class ActionStatement(Node):
+    def __init__(self, action, label=None):
+        self.action = action
+        self.label = label
+
+    def children(self):
+        listchildren = []
+        if self.action is not None: listchildren.append(self.action)
+        if self.label is not None: listchildren.append(self.label)
+        return listchildren
+
+    attr_names = ()
+
+
+class Action(Node):
+    def __init__(self, action):
+        self.action = action
+
+    def children(self):
+        listchildren = []
+        if self.action is not None: listchildren.append(self.action)
+        return listchildren
+
+    attr_names = ()
+
+class BracketedAction(Node):
+    def __init__(self, action):
+        self.action = action
+
+    def children(self):
+        listchildren = []
+        if self.action is not None: listchildren.append(self.action)
+        return listchildren
+
+    attr_names = ()
+
+class AssignmentAction(Node):
+    def __init__(self, location, assigning_op, expression):
+        self.location = location
+        self.assigning_op = assigning_op
+        self.expression = expression
+
+    def children(self):
+        listchildren = []
+        if self.location is not None: listchildren.append(self.location)
+        if self.assigning_op is not None: listchildren.append(self.assigning_op)
+        if self.expression is not None: listchildren.append(self.expression)
+        return listchildren
+
+    attr_names = ()
+
+class AssigningOperator(Node):
+    def __init__(self, assignm_symbl, cld_dyadic_op=''):
+        self.op = cld_dyadic_op + assignm_symbl
+
+    attr_names = ('op',)
+
+class IfAction(Node):
+    def __init__(self, if_exp, then_exp, else_exp=None):
+        self.if_exp = if_exp
+        self.then_exp = then_exp
+        self.else_exp = else_exp
+
+    def children(self):
+        listchildren = []
+        if self.if_exp is not None: listchildren.append(self.if_exp)
+        if self.then_exp is not None: listchildren.append(self.then_exp)
+        if self.else_exp is not None: listchildren.append(self.else_exp)
+        return listchildren
+
+    attr_names = ()
+
+class ThenAction(Node):
+    def __init__(self, action_statment_list):
+        self.action_statement_list = self.action_statement_list
+        self.then_exp = self.then_exp
+        self.else_exp = self.else_exp
+
+    def children(self):
+        listchildren = []
+        for statement in action_statement_list:
+            listchildren.append(statement)
+        return listchildren
+
+    attr_names = ()
+
+class ElseClause(Node):
+    def __init__(self, else_type , bool_or_statment_list, then_exp=None, else_exp=None):
+        self.bool_or_statement_list = self.bool_or_statement_list
+        self.then_exp = self.then_exp
+        self.else_exp = self.else_exp
+
+    def children(self):
+        listchildren = []
+        if self.else_type == 'else': 
+            for statement in bool_or_statement_list:
+                listchildren.append(statement)
+        else:
+            if self.bool_or_statement_list is not None: listchildren.append(self.bool_or_statement_list)
+            if self.then_exp is not None: listchildren.append(self.then_exp)
+            if self.else_exp is not None: listchildren.append(self.else_exp)
+        return listchildren
+
+    attr_names = ()
+
+class DoAction(Node):
+    def __init__(self, action_statement_list, ctrl_part=None):
+        self.action_statement_list = action_statement_list
+        self.ctrl_part = ctrl_part
+
+    def children(self):
+        listchildren = []
+        for statement in action_statement_list:
+            listchildren.append(statement)
+        if self.ctrl_part is not None: listchildren.append(self.ctrl_part)
+        return listchildren
+
+    attr_names = ()
+
+class ControlPart(Node):
+    def __init__(self, ctrl1, ctrl2=None):
+        self.ctrl1= ctrl1
+        self.ctrl2= ctrl2
+
+    def children(self):
+        listchildren = []
+        if self.ctrl1 is not None: listchildren.append(self.ctrl1)
+        if self.ctrl2 is not None: listchildren.append(self.ctrl2)
+        return listchildren
+
+    attr_names = ()
+
+
+class ForControl(Node):
+    def __init__(self, iteration):
+        self.iteration = iteration 
+
+    def children(self):
+        listchildren = []
+        if self.iteration is not None: listchildren.append(self.iteration)
+        return listchildren
+
+    attr_names = ()
+
+
+class Iteration(Node):
+    def __init__(self, enum):
+        self.enum = enum
+
+    def children(self):
+        listchildren = []
+        if self.enum is not None: listchildren.append(self.enum)
+        return listchildren
+
+    attr_names = ()
+
+
+class StepEnumeration(Node):
+    def __init__(self, counter, start, end, step=None, decreasing=False):
+        self.counter = counter
+        self.start = start
+        self.end = end 
+        self.step = step
+        self.decreasing = decreasing
+
+    def children(self):
+        listchildren = []
+        if self.counter is not None: listchildren.append(self.counter)
+        if self.start is not None: listchildren.append(self.start)
+        if self.end is not None: listchildren.append(self.end)
+        if self.step is not None: listchildren.append(self.step)
+        return listchildren
+
+    attr_names = ('decreasing', )
+
+class RangeEnumeration(Node):
+    def __init__(self, counter, mode, decreasing=False):
+        self.counter = counter
+        self.mode = mode 
+        self.decreasing = decreasing
+
+    def children(self):
+        listchildren = []
+        if self.counter is not None: listchildren.append(self.counter)
+        if self.mode is not None: listchildren.append(self.mode)
+        return listchildren
+
+    attr_names = ('decreasing', )
+
+class WhileControl(Node):
+    def __init__(self, bool_exp):
+        self.bool_exp = bool_exp
+
+    def children(self):
+        listchildren = []
+        if self.bool_exp is not None: listchildren.append(self.bool_exp)
+        return listchildren
+
+    attr_names = ()
+
+class CallAction(Node):
+    def __init__(self, call):
+        self.call = call
+
+    def children(self):
+        listchildren = []
+        if self.call is not None: listchildren.append(self.call)
+        return listchildren
+
+    attr_names = ()
+
+
+class ProcedureCall(Node):
+    def __init__(self, name, param_list=[]):
+        self.name = name
+        self.param_list = param_list
+
+    def children(self):
+        listchildren = []
+        if self.name is not None: listchildren.append(self.name)
+        for param in param_list:
+            listchildren.append(param)
+        return listchildren
+
+    attr_names = ()
+
+class ExitAction(Node):
+    def __init__(self, label):
+        self.label = label  
+
+    def children(self):
+        listchildren = []
+        if self.label is not None: listchildren.append(self.label)
+        return listchildren
+
+    attr_names = ()
+
+class ReturnAction(Node):
+    def __init__(self, exp=None):
+        self.exp = exp 
+
+    def children(self):
+        listchildren = []
+        if self.exp is not None: listchildren.append(self.exp)
+        return listchildren
+
+    attr_names = ()
+
+class ResultAction(Node):
+    def __init__(self, result):
+        self.result = result 
+
+    def children(self):
+        listchildren = []
+        if self.result is not None: listchildren.append(self.result)
+        return listchildren
+
+    attr_names = ()
+
+class BuiltInCall(Node):
+    def __init__(self, name, param_list=[]):
+        self.name = name
+        self.param_list = param_list
+
+    def children(self):
+        listchildren = []
+        for param in param_list:
+            listchildren.append(param)
+        return listchildren
+
+    attr_names = ('name', )
+    
+class ProcedureStatement(Node):
+    def __init__(self, label, procedure_def):
+        self.label = label
+        self.procedure_def = procedure_def
+
+    def children(self):
+        listchildren = []
+        if self.label is not None: listchildren.append(self.label)
+        if self.procedure_def is not None: listchildren.append(self.procedure_def)
+        return listchildren
+
+    attr_names = ()
+
+
+class ProcedureDefinition(Node):
+    def __init__(self, stmt_list, result_spec=None, formal_parameter_list=[]):
+        self.stmt_list = stmt_list
+        self.result_spec = result_spec
+        self.formal_parameter_list = formal_parameter_list
+
+    def children(self):
+        listchildren = []
+        if self.result_spec is not None: listchildren.append(self.result_spec)
+        for formal_parameter in formal_parameter_list:
+            listchildren.append(formal_parameter)
+        for statement in stmt_list:
+            listchildren.append(statement)
+        return listchildren
+
+    attr_names = ()
+
+class FormalParameter(Node):
+    def __init__(self, id_list, param_spec):
+        self.id_list = id_list
+        self.param_spec = param_spec
+
+    def children(self):
+        listchildren = []
+        if self.param_spec is not None: listchildren.append(self.param_spec)
+        for identifier in id_list:
+            listchildren.append(identifier)
+        return listchildren
+
+    attr_names = ()
+
+
+class ParameterSpec(Node):
+    def __init__(self, mode, loc=False):
+        self.mode = mode 
+        self.loc = loc 
+
+    def children(self):
+        listchildren = []
+        if self.mode is not None: listchildren.append(self.mode)
+        return listchildren
+
+    attr_names = ('loc', )
+
+
+class ResultSpec(Node):
+    def __init__(self, mode, loc=False):
+        self.mode = mode 
+        self.loc = loc 
+
+    def children(self):
+        listchildren = []
+        if self.mode is not None: listchildren.append(self.mode)
+        return listchildren
+
+    attr_names = ('loc', )
 
