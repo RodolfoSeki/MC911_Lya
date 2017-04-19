@@ -435,7 +435,7 @@ class MyParser(object):
         ''' operator1 : relational_operator
                       | membership_operator
         '''
-        p[0] = ast.Operator1(p[1])
+        p[0] = p[1]
 
 
     def p_relational_operator(self, p):
@@ -448,18 +448,19 @@ class MyParser(object):
                                 | LT
                                 | LEQ
         '''
-        p[0] = p[1]
+        p[0] = ast.Operator(p[1])
 
 
     def p_membership_operator(self, p):
         ''' membership_operator : IN
         '''
-        p[0] = p[1]
+        p[0] = ast.Operator(p[1])
 
 
     def p_operand1(self, p):
         ''' operand1 : operand2
-                     | operand1 operator2 operand2
+                     | operand1 arithmetic_additive_operator operand2
+                     | operand1 string_concatenation_operator operand2
         '''
         if len(p) == 2:
             p[0] = ast.Operand1(p[1])
@@ -467,24 +468,17 @@ class MyParser(object):
             p[0] = ast.Operand1(p[3], p[1], p[2])
 
 
-    def p_operator2(self, p):
-        ''' operator2 : arithmetic_additive_operator
-                      | string_concatenation_operator
-        '''
-        p[0] = ast.Operator2(p[1])
-
-
     def p_arithmetic_additive_operator(self, p):
         ''' arithmetic_additive_operator : PLUS
                                          | MINUS
         '''
-        p[0] = p[1]
+        p[0] = ast.Operator(p[1])
 
 
     def p_string_concatenation_operator(self, p):
         ''' string_concatenation_operator : LAND
         '''
-        p[0] = p[1]
+        p[0] = ast.Operator(p[1])
 
 
     def p_operand2(self, p):
@@ -502,12 +496,11 @@ class MyParser(object):
                                                | DIVIDE
                                                | MODULO 
         '''
-        p[0] = p[1]
+        p[0] = ast.Operator(p[1])
 
     def p_operand3(self, p):
         ''' operand3 : operand4
                      | monadic_operator operand4
-                     | literal
         '''
         if len(p) == 2:
             p[0] = ast.Operand3(p[1]) 
@@ -519,7 +512,7 @@ class MyParser(object):
         ''' monadic_operator : MINUS
                              | NOT 
         '''
-        p[0] = p[1]
+        p[0] = ast.Operator(p[1])
 
 
     def p_operand4(self, p):
@@ -538,18 +531,12 @@ class MyParser(object):
 
     def p_action_statement(self, p):
         ''' action_statement : action SEMI
-                             | label_id COLON action SEMI
+                             | identifier COLON action SEMI
         '''
         if len(p) == 3:
             p[0] = ast.ActionStatement(p[1])
         else:
             p[0] = ast.ActionStatement(p[3], p[1])
-
-
-    def p_label_id(self, p):
-        ''' label_id : identifier
-        '''
-        p[0] = p[1]
 
 
     def p_action(self, p):
@@ -578,21 +565,17 @@ class MyParser(object):
 
     def p_assigning_operator(self, p):
         ''' assigning_operator : EQUALS
-                               | closed_dyadic_operator EQUALS
+                               | PLUS EQUALS
+                               | MINUS EQUALS
+                               | TIMES EQUALS
+                               | DIVIDE EQUALS
+                               | MODULO EQUALS
+                               | LAND EQUALS
         '''
         if len(p) == 2:
             p[0] = ast.AssigningOperator(p[1])
         else:
             p[0] = ast.AssigningOperator(p[2], p[1])
-
-
-    def p_closed_dyadic_operator(self, p):
-        ''' closed_dyadic_operator : arithmetic_additive_operator
-                                   | arithmetic_multiplicative_operator
-                                   | string_concatenation_operator
-        '''
-        p[0] = p[1]
-
 
     def p_if_action(self, p):
         ''' if_action : IF boolean_expression then_clause FI
@@ -749,7 +732,7 @@ class MyParser(object):
 
 
     def p_exit_action(self, p):
-        ''' exit_action : EXIT label_id
+        ''' exit_action : EXIT identifier
         '''
         p[0] = ast.ExitAction(p[2])
 
@@ -800,7 +783,7 @@ class MyParser(object):
 
 
     def p_procedure_statement(self, p):
-        ''' procedure_statement : label_id COLON procedure_definition SEMI
+        ''' procedure_statement : identifier COLON procedure_definition SEMI
         '''
         p[0] = ast.ProcedureStatement(p[1], p[3])
 
@@ -817,9 +800,9 @@ class MyParser(object):
             if p[3] == ')':
                 p[0] = ast.ProcedureDefinition(p[6], result_spec=p[4])
             else:
-                p[0] = ast.ProcedureDefinition(p[6], formal_param_list=p[3])
+                p[0] = ast.ProcedureDefinition(p[6], formal_parameter_list=p[3])
         else:
-            p[0] = ast.ProcedureDefinition(p[7], result_spec=p[5], formal_param_list=p[3])
+            p[0] = ast.ProcedureDefinition(p[7], result_spec=p[5], formal_parameter_list=p[3])
 
 
     def p_formal_parameter_list(self, p):

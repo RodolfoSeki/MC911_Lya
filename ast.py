@@ -320,7 +320,7 @@ class ValueArrayElement(Node):
     def children(self):
         listchildren = []
         if self.value is not None: listchildren.append(self.value)
-        for exp in exp_list:
+        for exp in self.exp_list:
             listchildren.append(exp)
         return listchildren
 
@@ -437,12 +437,19 @@ class Operand0(Node):
 
     def children(self):
         listchildren = []
-        if self.operand1 is not None: listchildren.append(self.operand1)
         if self.operand0 is not None: listchildren.append(self.operand0)
+        if self.operand1 is not None: listchildren.append(self.operand1)
         if self.operator is not None: listchildren.append(self.operator)
         return listchildren
     
     attr_names = ()
+
+class Operator(Node):
+    def __init__(self, op):
+        self.op = op
+
+    attr_names = ('op',)
+
 
 class Operator1(Node):
     def __init__(self, op):
@@ -596,30 +603,28 @@ class IfAction(Node):
 
     attr_names = ()
 
-class ThenAction(Node):
-    def __init__(self, action_statment_list):
-        self.action_statement_list = self.action_statement_list
-        self.then_exp = self.then_exp
-        self.else_exp = self.else_exp
+class ThenClause(Node):
+    def __init__(self, action_statement_list):
+        self.action_statement_list = action_statement_list
 
     def children(self):
         listchildren = []
-        for statement in action_statement_list:
+        for statement in self.action_statement_list:
             listchildren.append(statement)
         return listchildren
 
     attr_names = ()
 
 class ElseClause(Node):
-    def __init__(self, else_type , bool_or_statment_list, then_exp=None, else_exp=None):
-        self.bool_or_statement_list = self.bool_or_statement_list
-        self.then_exp = self.then_exp
-        self.else_exp = self.else_exp
+    def __init__(self, else_type , bool_or_statement_list, then_exp=None, else_exp=None):
+        self.bool_or_statement_list = bool_or_statement_list
+        self.then_exp = then_exp
+        self.else_exp = else_exp
 
     def children(self):
         listchildren = []
         if self.else_type == 'else': 
-            for statement in bool_or_statement_list:
+            for statement in self.bool_or_statement_list:
                 listchildren.append(statement)
         else:
             if self.bool_or_statement_list is not None: listchildren.append(self.bool_or_statement_list)
@@ -636,9 +641,9 @@ class DoAction(Node):
 
     def children(self):
         listchildren = []
-        for statement in action_statement_list:
-            listchildren.append(statement)
         if self.ctrl_part is not None: listchildren.append(self.ctrl_part)
+        for statement in self.action_statement_list:
+            listchildren.append(statement)
         return listchildren
 
     attr_names = ()
@@ -744,7 +749,7 @@ class ProcedureCall(Node):
     def children(self):
         listchildren = []
         if self.name is not None: listchildren.append(self.name)
-        for param in param_list:
+        for param in self.param_list:
             listchildren.append(param)
         return listchildren
 
@@ -790,7 +795,7 @@ class BuiltInCall(Node):
 
     def children(self):
         listchildren = []
-        for param in param_list:
+        for param in self.param_list:
             listchildren.append(param)
         return listchildren
 
@@ -819,9 +824,9 @@ class ProcedureDefinition(Node):
     def children(self):
         listchildren = []
         if self.result_spec is not None: listchildren.append(self.result_spec)
-        for formal_parameter in formal_parameter_list:
+        for formal_parameter in self.formal_parameter_list:
             listchildren.append(formal_parameter)
-        for statement in stmt_list:
+        for statement in self.stmt_list:
             listchildren.append(statement)
         return listchildren
 
@@ -835,7 +840,7 @@ class FormalParameter(Node):
     def children(self):
         listchildren = []
         if self.param_spec is not None: listchildren.append(self.param_spec)
-        for identifier in id_list:
+        for identifier in self.id_list:
             listchildren.append(identifier)
         return listchildren
 
