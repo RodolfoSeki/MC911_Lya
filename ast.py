@@ -11,7 +11,11 @@ class Node(object):
         buf.write(': ' + ', '.join(['{}={}'.format(k, getattr(self, k)) for k in self.attr_names]) + '\n')
 
         for child in self.children():
-            child.show(buf, offset + 2)
+            try:
+                child.show(buf, offset + 2)
+            except:
+                print (' '*offset + "Error at: " + self.__class__.__name__)
+                raise
 
 class Program(Node):
     def __init__(self, stmt_list):
@@ -641,6 +645,11 @@ class DoAction(Node):
 
     def children(self):
         listchildren = []
+<<<<<<< HEAD
+=======
+        for statement in self.action_statement_list:
+            listchildren.append(statement)
+>>>>>>> dedd3d1112285d44becc45f58207630bad195479
         if self.ctrl_part is not None: listchildren.append(self.ctrl_part)
         for statement in self.action_statement_list:
             listchildren.append(statement)
