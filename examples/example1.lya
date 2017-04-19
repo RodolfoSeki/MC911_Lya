@@ -1,6 +1,6 @@
 /* example1: */
 dcl m,n,s int;
-m = -> s
+m = -> s;
 read(m,n);
 s = 0;
 do while m <= n;

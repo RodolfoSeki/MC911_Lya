@@ -1,0 +1,2 @@
+class MyVisitor(object):
+    

@@ -1,4 +1,33 @@
-import sys
+class NodeVisitor(object):
+
+    def visit(self,node):
+        """
+        Execute a method of the form visit_NodeName(node) where
+        NodeName is the name of the class of a particular node.
+        """
+        if node:
+            method = ’visit_’ + node.__class__.__name__
+            visitor = getattr(self, method, self.generic_visit)
+            return visitor(node)
+        else:
+            return None
+
+    def generic_visit(self,node):
+        """
+        Method executed if no applicable visit_ method can be found.
+        This examines the node to see if it has _fields, is a list,
+        or can be further traversed.
+        """
+        for field in getattr(node,"_fields"):
+            value = getattr(node,field,None)
+            if isinstance(value, list):
+                for item in value:
+                    if isinstance(item,AST):
+                        self.visit(item)
+            elif isinstance(value, AST):
+                self.visit(value)
+
+
 
 class Node(object):
 
@@ -15,6 +44,7 @@ class Node(object):
                 child.show(buf, offset + 2)
             except:
                 print (' '*offset + "Error at: " + self.__class__.__name__)
+                print (child)
                 raise
 
 class Program(Node):
@@ -83,6 +113,17 @@ class SynonymDefinition(Node):
             listchildren.append(identifier)
         return listchildren
 
+    attr_names = ()
+
+class NewModeStatement(Node):
+    def __init__(self, mode):
+        self.mode = mode 
+
+    def children(self):
+        listchildren = []
+        if self.mode is not None: listchildren.append(self.mode)
+        return listchildren
+        
     attr_names = ()
 
 class Mode(Node):
@@ -217,6 +258,20 @@ class DereferencedReference(Node):
     def children(self):
         listchildren = []
         if self.loc is not None: listchildren.append(self.loc)
+        return listchildren
+
+    attr_names = ()
+
+class StringElement(Node):
+
+    def __init__(self, ident, element):
+        self.ident = ident
+        self.element = element
+
+    def children(self):
+        listchildren = []
+        if self.ident is not None: listchildren.append(self.ident)
+        if self.element is not None: listchildren.append(self.element)
         return listchildren
 
     attr_names = ()
@@ -621,6 +676,7 @@ class ThenClause(Node):
 
 class ElseClause(Node):
     def __init__(self, else_type , bool_or_statement_list, then_exp=None, else_exp=None):
+        self.else_type = else_type
         self.bool_or_statement_list = bool_or_statement_list
         self.then_exp = then_exp
         self.else_exp = else_exp
@@ -645,11 +701,6 @@ class DoAction(Node):
 
     def children(self):
         listchildren = []
-<<<<<<< HEAD
-=======
-        for statement in self.action_statement_list:
-            listchildren.append(statement)
->>>>>>> dedd3d1112285d44becc45f58207630bad195479
         if self.ctrl_part is not None: listchildren.append(self.ctrl_part)
         for statement in self.action_statement_list:
             listchildren.append(statement)

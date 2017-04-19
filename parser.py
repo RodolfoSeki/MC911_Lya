@@ -1,12 +1,3 @@
-# Yacc example
-
-import ply.yacc as yacc
-from lexer import MyLexer
-import ast
-import sys
-
-# Get the token map from the lexer.  This is required.
-
 class MyParser(object):
 
 
@@ -137,7 +128,7 @@ class MyParser(object):
     def p_mode_definition(self, p):
         ''' mode_definition : identifier_list EQUALS mode
         '''
-        p[0] = p[1] + p[3]
+        p[0] = ModeDefinition(p[1], p[3])
 
 
     def p_mode(self, p):
@@ -229,11 +220,11 @@ class MyParser(object):
     def p_location(self, p):
         ''' location : identifier
                      | dereferenced_reference
-                     | string_element
-                     | string_slice
                      | array_element
                      | array_slice
                      | call_action
+                     | string_slice
+                     | string_element
         '''
         p[0] = ast.Location(p[1])
 
@@ -247,6 +238,7 @@ class MyParser(object):
     def p_string_element(self, p):
         ''' string_element : identifier LBRACKET start_element RBRACKET
         '''
+
         p[0] = ast.StringElement(p[1], p[3])
 
 
@@ -257,7 +249,7 @@ class MyParser(object):
 
 
     def p_string_slice(self, p):
-        ''' string_slice : identifier LBRACKET left_element COLON right_element RBRACKET
+        ''' string_slice : identifier LBRACKET left_element COLON right_element RBRACKET 
         '''
         p[0] = ast.StringSlice(p[1], p[3], p[5])
 
@@ -426,7 +418,8 @@ class MyParser(object):
                      | operand0 operator1 operand1
         '''
         if len(p) == 2:
-            p[0] = ast.Operand0(p[1])
+            p[0] = p[1]
+            #p[0] = ast.Operand1(p[1])
         else:
             p[0] = ast.Operand0(p[3], p[1], p[2])
 
@@ -463,7 +456,8 @@ class MyParser(object):
                      | operand1 string_concatenation_operator operand2
         '''
         if len(p) == 2:
-            p[0] = ast.Operand1(p[1])
+            #p[0] = ast.Operand2(p[1])
+            p[0] = p[1]
         else:
             p[0] = ast.Operand1(p[3], p[1], p[2])
 
@@ -486,7 +480,8 @@ class MyParser(object):
                      | operand2 arithmetic_multiplicative_operator operand3
         '''
         if len(p) == 2:
-            p[0] = ast.Operand2(p[1])
+            #p[0] = ast.Operand3(p[1])
+            p[0] = p[1]
         else:
             p[0] = ast.Operand2(p[3], p[1], p[2])
 
@@ -503,7 +498,8 @@ class MyParser(object):
                      | monadic_operator operand4
         '''
         if len(p) == 2:
-            p[0] = ast.Operand3(p[1]) 
+            #p[0] = ast.Operand4(p[1]) 
+            p[0] = p[1]
         else:
             p[0] = ast.Operand3(p[2], p[1])
 
@@ -520,7 +516,8 @@ class MyParser(object):
                      | referenced_location
                      | primitive_value
         '''
-        p[0] = ast.Operand4(p[1])
+        #p[0] = ast.Operand4(p[1])
+        p[0] = p[1]
 
 
     def p_referenced_location(self, p):
@@ -638,7 +635,7 @@ class MyParser(object):
     def p_for_control(self, p):
         ''' for_control : FOR iteration
         '''
-        p[0] = ast.ForControl(p[1])
+        p[0] = ast.ForControl(p[2])
 
 
     def p_iteration(self, p):
@@ -742,9 +739,9 @@ class MyParser(object):
                           | RETURN result
         '''
         if len(p) == 2:
-            p[0] = ast.ReturnAction(p[2])
-        else:
             p[0] = ast.ReturnAction()
+        else:
+            p[0] = ast.ReturnAction(p[2])
 
     def p_result_action(self, p):
         ''' result_action : RESULT result
@@ -807,12 +804,12 @@ class MyParser(object):
 
     def p_formal_parameter_list(self, p):
         ''' formal_parameter_list : formal_parameter 
-                                  | formal_parameter_list formal_parameter
+                                  | formal_parameter_list COMMA formal_parameter
         '''
         if len(p) == 2:
             p[0] = [p[1]]
         else:
-            p[0] = p[1] + [p[2]]
+            p[0] = p[1] + [p[3]]
 
 
     def p_formal_parameter(self, p):
@@ -843,6 +840,7 @@ class MyParser(object):
 
     # Error rule for syntax errors
     def p_error(self, p):
+        print (p)
         print("Syntax error in input!")
 
     def __init__(self):
@@ -853,10 +851,4 @@ class MyParser(object):
 
     def parse(self, codigo):
         return self.myparser.parse(input=codigo, lexer=self.mylex)
-
-p = MyParser()
-f = open(sys.argv[1])
-codigo = ''.join(f.readlines())
-p.parse(codigo).show()
-f.close()
 
