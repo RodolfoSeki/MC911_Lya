@@ -1,9 +1,1 @@
-dcl m,n,s int;
-
-read(m , n);
-
-s = 0;
-
-do while m <= n;
-	s = s + m * n;
-od;
+dcl m,n,s int, x int = 3;
