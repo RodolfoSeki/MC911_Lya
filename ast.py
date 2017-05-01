@@ -1,5 +1,11 @@
 import sys
 
+def toRed(prt): return("\033[91m{}\033[00m" .format(prt))
+def toGreen(prt): return("\033[92m{}\033[00m" .format(prt))
+def toYellow(prt): return("\033[93m{}\033[00m" .format(prt))
+def toCyan(prt): return("\033[96m{}\033[00m" .format(prt))
+def toLightGray(prt): return("\033[97m{}\033[00m" .format(prt))
+
 class Node(object):
 
     def children(self):
@@ -13,6 +19,27 @@ class Node(object):
         for child in self.children():
             try:
                 child.show(buf, offset + 2)
+            except:
+                print (' '*offset + "Error at: " + self.__class__.__name__)
+                print (child)
+                raise
+
+    def showDecorated(self, buf=sys.stdout, offset=0):
+        buf.write(' '*offset)
+        buf.write(type(self).__name__)
+        buf.write(': ' + ', '.join(['{}={}'.format(k, getattr(self, k)) for k in self.attr_names]))
+        if len(self.attr_names) < 1:
+            try:
+                buf.write('   ' + toRed('type=') + str(getattr(self, 'type')) + ' "' + toGreen(getattr(self, 'repr')) + '"\n')
+            except AttributeError:
+                buf.write('\n')
+        else:
+            buf.write('\n')
+
+
+        for child in self.children():
+            try:
+                child.showDecorated(buf, offset + 2)
             except:
                 print (' '*offset + "Error at: " + self.__class__.__name__)
                 print (child)
@@ -131,7 +158,7 @@ class IntegerMode(Node):
 
     attr_names = ('name',)
 
-class CharMode(Node):
+class CharacterMode(Node):
     def __init__(self):
         self.name = 'char'
 
@@ -329,12 +356,6 @@ class EmptyLiteral(Node):
         self.val='NULL'
 
     attr_names = ('val',)
-
-class CharacterStringLiteral(Node):
-    def __init__(self, string):
-        self.string = string
-
-    attr_names = ('string',)
 
 class CharacterStringLiteral(Node):
     def __init__(self, string):

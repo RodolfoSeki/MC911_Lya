@@ -5,6 +5,7 @@ class NodeVisitor(object):
         Execute a method of the form visit_NodeName(node) where
         NodeName is the name of the class of a particular node.
         """
+        print('Visiting ' + node.__class__.__name__)
         if node:
             method = 'visit_' + node.__class__.__name__
             visitor = getattr(self, method, self.generic_visit)
@@ -18,7 +19,12 @@ class NodeVisitor(object):
         This examines the node to see if it has _fields, is a list,
         or can be further traversed.
         """
-        return visit(node)
+        if len(node.children()) == 1:
+            self.visit(node.children()[0])
+            node.type = node.children()[0].type
+            node.repr = node.children()[0].repr
+        else:
+            print('Erro child ' + node.__class__.__name__)
 
         """
         for field in getattr(node,"_fields"):
@@ -50,11 +56,6 @@ class SymbolTable(dict):
         return None
 
 class Type(object):
-    def __init__(self, exprtype, string):
-        self.type = exprtype
-        self.name = string
-
-class ExprType(object):
     def __init__(self, type, unaryop, binop):
         self.type = type
         self.unaryop = unaryop
@@ -63,10 +64,13 @@ class ExprType(object):
     def __repr__(self):
         return self.type
 
-int_type = ExprType("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '<', '>=', '<', '<='])
-bool_type = ExprType("bool", ['!'], ['==', '!='])
-char_type = ExprType("char", [], [])
-string_type = ExprType("string", [], ['+', '==', '!=', '&', '&='])
+    def __str__(self):
+        return self.type
+
+int_type = Type("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '<', '>=', '<', '<='])
+bool_type = Type("bool", ['!'], ['==', '!='])
+char_type = Type("char", [], [])
+string_type = Type("string", [], ['+', '==', '!=', '&', '&='])
 
 class Environment(object):
     def __init__(self):
@@ -116,26 +120,43 @@ class Visitor(NodeVisitor):
         self.environment = Environment()
 
     def raw_type_unary(self, node, op, val):
-        if hasattr(val, "check_type"):
-            if op not in val.check_type.unary_ops:
-                error(node.lineno,
-                      "Unary operator {} not supported".format(op))
-            return val.check_type
+        if op not in left.type.unary_ops:
+            print('Error, {} is not supported for {}'.format(op, val.raw_type))
+        return val.type
 
     def raw_type_binary(self, node, op, left, right):
-        if hasattr(left, "check_type") and hasattr(right, "check_type"):
-            if left.check_type != right.check_type:
-                error(node.lineno,
-                "Binary operator {} does not have matching types".format(op))
-                return left.check_type
-            errside = None
-            if op not in left.check_type.binary_ops:
-                errside = "LHS"
-            if op not in right.check_type.binary_ops:
-                errside = "RHS"
-            if errside is not None:
-                error(node.lineno, "Binary operator {} not supported on {} of expression".format(op, errside))
-        return left.check_type
+
+        if left.type != right.type:
+            #error(node.lineno,
+            #print("Binary operator {} does not have matching types".format(op))
+            print('Error, {} {} {} is not supported'.format(left.repr, op, right.repr))
+            return left.type
+        if op not in left.type.binary_ops:
+            print('Error, {} is not supported for {}'.format(op, left.type))
+        if op not in right.type.binary_ops:
+            print('Error, {} is not supported for {}'.format(op, right.type))
+        return left.type
+
+    def visitBinaryExp(self, node, left, right, op):
+        self.visit(left)
+        self.visit(right)
+        if op == None:
+            node.type = left.type if left is not None else right.type
+            node.repr = left.repr if left is not None else right.repr
+            return 
+
+        node.type = raw_type_binary(node, op, left, right)
+        node.repr = ' '.join([left.name, op, right.name])
+    
+    def visitUnaryExp(self, node, val, op):
+        self.visit(val)
+        if op == None:
+            node.type = val.type
+            node.repr = val.repr
+            return 
+
+        node.type = raw_type_unary(node, op, val)
+        node.repr = ''.join([op, val.name])
 
     def visit_Program(self, node):
         self.environment.push(node)
@@ -143,108 +164,94 @@ class Visitor(NodeVisitor):
         node.symtab = self.environment.peek()
         # Visit all of the statements
         for stmt in node.stmt_list: 
-            self.visitStatement(stmt)
+            self.visit_Statement(stmt)
 
     def visit_Statement(self, node):
         for child in node.children():
             self.visit(child)
 
     def visit_Declaration(self, node):
-        mode = self.visit(node.mode)
-        value = self.visit(node.value)
-        if value != None:
-            if mode.type != value.type:
-                print('Error, {} is not {}'.format(value.name, mode.type))
-                #### TODO acabar
+        self.visit(node.mode)
+        self.visit(node.value)
+        if node.value is not None:
+            if node.mode.type != node.value.type:
+                print('Error, {} is not {}'.format(node.value.repr, node.mode.repr))
+
+        for identifier in node.id_list:
+            identifier.type = node.mode.type
+            identifier.repr = identifier.name
+            if self.environment.find(identifier.repr):
+                print('Error, {} already declared'.format(identifier.repr))
+            if node.value is not None:
+                self.environment.add_local(identifier.repr, node.value.type)
+            else:
+                self.environment.add_local(identifier.repr, identifier.type)
+                
+    def visit_SynonymDefinition(self, node):
+        self.visit(node.mode)
+        self.visit(node.constant_exp)
+        if node.mode is not None:
+            if node.mode.type != node.constant_exp.type:
+                print('Error, {} is not {}'.format(node.constant_exp.repr, node.mode.repr))
+
+        for identifier in node.id_list:
+            identifier.type = node.constant_exp.type
+            identifier.repr = identifier.name
+            if self.environment.find(identifier.repr):
+                print('Error, {} already exists'.format(identifier.repr))
+            self.environment.add_root(identifier.repr, identifier.type)
 
     def visit_IntegerMode(self, node):
-        return Type('int', int_type)
+        node.type = int_type
+        node.repr = 'INT'
 
+    def visit_BooleanMode(self, node):
+        node.type = bool_type
+        node.repr = 'BOOL'
 
+    def visit_CharacterMode(self, node):
+        node.type = char_type
+        node.repr = 'CHAR'
+
+    def visit_IntegerLiteral(self, node):
+        node.type = int_type
+        node.repr = node.const
+
+    def visit_BooleanLiteral(self, node):
+        node.type = bool_type
+        node.repr = node.val
+
+    def visit_CharacterLiteral(self, node):
+        node.type = char_type
+        node.repr = "'" + chr(node.val) + "'"
+        
+    def visit_EmptyLiteral(self, node):
+        node.type = string_type
+        node.repr = node.val
+
+    def visit_CharacterStringLiteral(self, node):
+        node.type = string_type
+        node.repr = node.val
 
     def visit_Operand0(self, node):
-        if node.operator == None:
-            return self.visit(node)
-        operand0 = self.visit(node.operand0)
-        operand1 = self.visit(node.operand1)
-        operator = node.operator.op
-        if operand0.type != operand1.type:
-            print('Error, {} {} {}'.format(operand0.type, operator, operand1.type))
-        if operator not in operand0.type.binop:
-            print('Error, {} not supported for {}'.format(operator, operand0.type))
-        #TODO
+        self.visitBinaryExp(node, node.operand0, node.operand1, node.operator.op)
 
     def visit_Operand1(self, node):
-        if node.operator == None:
-            return self.visit(node)
-
-        operand0 = self.visit(node.operand1)
-        operand1 = self.visit(node.operand2)
-        operator = node.operator.op
-
-        if operand0.type != operand1.type:
-            print('Error, {} {} {}'.format(operand0.type, operator, operand1.type))
-        if operator not in operand0.type.binop:
-            print('Error, {} not supported for {}'.format(operator, operand0.type))
-
-        return Type(' '.join([operand0.name, operator, operand1.name]), operand0.type)
+        self.visitBinaryExp(node, node.operand1, node.operand2, node.operator.op)
 
     def visit_Operand2(self, node):
-        if node.operator == None:
-            return self.visit(node)
-
-        operand0 = self.visit(node.operand2)
-        operand1 = self.visit(node.operand3)
-        operator = node.operator.op
-
-        if operand0.type != operand1.type:
-            print('Error, {} {} {}'.format(operand0.type, operator, operand1.type))
-        if operator not in operand0.type.binop:
-            print('Error, {} not supported for {}'.format(operator, operand0.type))
-
-        return Type(' '.join([operand0.name, operator, operand1.name]), operand0.type)
+        self.visitBinaryExp(node, node.operand2, node.operand3, node.operator.op)
 
     def visit_Operand3(self, node):
-        if node.operator == None:
-            return self.visit(node)
+        self.visitUnaryExp(node, node.operator.op, node.operand)
 
-        operand0 = self.visit(node.operand_or_literal)
-        operator = node.operator.op
-
-        if operator not in operand0.type.unaryop:
-            print('Error, {} not supported for {}'.format(operator, operand0.type))
-
-        return Type(' '.join([operator, operand0.name]), operand0.type)
-
-    def visit_OperandX(self, node):
-        if node.operator == None:
-            return self.visit(node)
-        operand0 = self.visit(node.operand0)
-        operand1 = self.visit(node.operand1)
-        operator = node.operator.op
-        if operand0.type != operand1.type:
-            print('Error, {} {} {}'.format(operand0.type, operator, operand1.type))
-        if operator not in operand0.type.binop:
-            print('Error, {} not supported for {}'.format(operator, operand0.type))
-        #TODO
+    def visit_AssignmentAction(self, node):
+        self.visit(node.expression)
+        left = node.location
+        node.type = raw_type_binary(node, op, left, right)
+        node.repr = ' '.join([left.name, op, right.name])
 
     def visit_SynStmt(self, node):
         # Visit all of the synonyms
         for syn in node.syns:
             self.visit(syn)
-
-    def visit_UnaryExpr(self,node):
-        self.visit(node.expr)
-        # Make sure that the operation is supported by the type
-        raw_type = self.raw_type_unary(node, node.op, node.expr)
-        # Set the result type to the same as the operand
-        node.raw_type = raw_type
-
-    def visit_BinaryExpr(self,node):
-        # Make sure left and right operands have the same type
-        # Make sure the operation is supported
-        self.visit(node.left)
-        self.visit(node.right)
-        raw_type = self.raw_type_binary(node, node.op, node.left, node.right)
-        # Assign the result type
-        node.raw_type = raw_type
