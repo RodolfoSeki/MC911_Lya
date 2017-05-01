@@ -279,8 +279,8 @@ class StringElement(Node):
 class StringSlice(Node):
     def __init__(self, loc, left, right):
         self.loc = loc
-        self.left = loc
-        self.right = loc
+        self.left = left
+        self.right = right
 
     def children(self):
         listchildren = []

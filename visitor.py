@@ -310,3 +310,48 @@ class Visitor(NodeVisitor):
         # Visit all of the synonyms
         for syn in node.syns:
             self.visit(syn)
+    
+    def visit_StringElement(self, node):
+        self.visit_Identifier(node.ident)
+        self.visit(node.element)
+        if node.element.type != int_type:
+            print('Error, {} should be int'.format(element.repr))
+            
+        return node.ident.type
+        
+    def visit_StringSlice(self, node):
+        self.visit_Identifier(node.loc)
+        self.visit(node.left)
+        self.visit(node.right)
+        
+        if node.left.type != int_type:
+            print('Error, {} should be int'.format(left.repr))
+            
+        if node.right.type != int_type:
+            print('Error, {} should be int'.format(right.repr))
+        
+        return node.loc.type
+    
+    def visit_ArrayElement(self, node):
+        self.visit_Identifier(node.loc)
+        
+        for exp in node.expr_list:
+            self.visit(exp)
+            if exp.type != int_type:
+                print('Error, {} should be int'.format(exp.repr))
+                
+        return node.loc.type
+    
+    def visit_ArraySlice(self, node):
+        self.visit_Identifier(node.loc)
+        self.visit(node.left)
+        self.visit(node.right)
+        
+        if node.left.type != int_type:
+            print('Error, {} should be int'.format(left.repr))
+            
+        if node.right.type != int_type:
+            print('Error, {} should be int'.format(right.repr))
+            
+        return node.loc.type
+        
