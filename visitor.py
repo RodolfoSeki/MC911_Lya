@@ -71,6 +71,7 @@ int_type = Type("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '
 bool_type = Type("bool", ['!'], ['==', '!='])
 char_type = Type("char", [], [])
 string_type = Type("string", [], ['+', '==', '!=', '&', '&='])
+array_type = Type("array", [], ['==', '!='])
 
 class Environment(object):
     def __init__(self):
@@ -131,9 +132,9 @@ class Visitor(NodeVisitor):
             #print("Binary operator {} does not have matching types".format(op))
             print('Error, {} {} {} is not supported'.format(left.repr, op, right.repr))
             return left.type
-        if op not in left.type.binary_ops:
+        if op not in left.type.binop:
             print('Error, {} is not supported for {}'.format(op, left.type))
-        if op not in right.type.binary_ops:
+        if op not in right.type.binop:
             print('Error, {} is not supported for {}'.format(op, right.type))
         return left.type
 
@@ -145,7 +146,7 @@ class Visitor(NodeVisitor):
             node.repr = left.repr if left is not None else right.repr
             return 
 
-        node.type = raw_type_binary(node, op, left, right)
+        node.type = self.raw_type_binary(node, op, left, right)
         node.repr = ' '.join([left.name, op, right.name])
     
     def visitUnaryExp(self, node, val, op):
@@ -186,6 +187,12 @@ class Visitor(NodeVisitor):
                 self.environment.add_local(identifier.repr, node.value.type)
             else:
                 self.environment.add_local(identifier.repr, identifier.type)
+
+    def visit_Identifier(self, node):
+        node.repr = node.name
+        node.type = self.environment.lookup(node.name)
+        if node.type is None:
+            print('Error, {} used but not declared'.format(node.repr))
                 
     def visit_SynonymDefinition(self, node):
         self.visit(node.mode)
@@ -196,6 +203,16 @@ class Visitor(NodeVisitor):
 
         for identifier in node.id_list:
             identifier.type = node.constant_exp.type
+            identifier.repr = identifier.name
+            if self.environment.find(identifier.repr):
+                print('Error, {} already exists'.format(identifier.repr))
+            self.environment.add_root(identifier.repr, identifier.type)
+            
+    def visit_ModeDefinition(self, node):
+        self.visit(node.mode)
+
+        for identifier in node.id_list:
+            identifier.type = node.mode.type
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error, {} already exists'.format(identifier.repr))
@@ -212,6 +229,40 @@ class Visitor(NodeVisitor):
     def visit_CharacterMode(self, node):
         node.type = char_type
         node.repr = 'CHAR'
+
+    def visit_DiscreteRangeMode(self, node):
+        self.visit(node.name)
+        self.visit(node.literal_range)
+        node.type = node.name.type
+        node.repr = node.name.repr + '(' + node.literal_range.repr + ')'
+
+    def visit_LiteralRange(self, node):
+        self.visit(node.lower)
+        self.visit(node.upper)
+        if node.lower.type != int_type:
+            print('Error, literal range lower bound cannot be {}'.format(lower.type))
+        if node.upper.type != int_type:
+            print('Error, literal range upper bound cannot be {}'.format(upper.type))
+
+        node.type = node.lower.type
+        node.repr = node.lower.repr + ':' + node.upper.repr
+
+    def visit_StringMode(self, node):
+        self.visit(node.length)
+        if node.length.type != int_type:
+            print('Error, string length cannot be {}'.format(length.type))
+
+        node.type = string_type
+        node.repr = 'CHARS [{}]'.format(length.repr)
+
+    def visit_ArrayMode(self, node):
+        for index_mode in node.index_mode_list:
+            self.visit(index_mode)
+        self.visit(node.mode)
+
+        node.type = array_type
+        node.arrtype = mode.type
+        node.repr = 'ARRAY [{}] {}'.format(', '.join(node.index_mode_list), mode)
 
     def visit_IntegerLiteral(self, node):
         node.type = int_type
@@ -247,9 +298,13 @@ class Visitor(NodeVisitor):
 
     def visit_AssignmentAction(self, node):
         self.visit(node.expression)
+        self.visit(node.location)
         left = node.location
-        node.type = raw_type_binary(node, op, left, right)
-        node.repr = ' '.join([left.name, op, right.name])
+        right = node.expression
+        if left.type != right.type:
+            print("Error, can't assign {} to {}".format(right.type, left.type))
+        node.type = left.type
+        node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
     def visit_SynStmt(self, node):
         # Visit all of the synonyms

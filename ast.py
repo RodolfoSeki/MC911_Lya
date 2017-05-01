@@ -124,6 +124,20 @@ class NewModeStatement(Node):
         
     attr_names = ()
 
+class ModeDefinition(Node):
+    def __init__(self, id_list, mode):
+        self.id_list = id_list
+        self.mode = mode
+
+    def children(self):
+        listchildren = []
+        for identifier in self.id_list:
+            listchildren.append(identifier)
+        if self.mode is not None: listchildren.append(self.mode)
+        return listchildren
+
+    attr_names = ()
+
 class Mode(Node):
     def __init__(self, mode):
         self.mode = mode 
@@ -207,17 +221,6 @@ class ReferenceMode(Node):
 
     attr_names = ()
 
-class ReferenceMode(Node):
-    def __init__(self, mode):
-        self.mode = mode
-
-    def children(self):
-        listchildren = []
-        if self.mode is not None: listchildren.append(self.mode)
-        return listchildren
-
-    attr_names = ()
-
 class StringMode(Node):
     def __init__(self, length):
         self.length = length
@@ -261,7 +264,6 @@ class DereferencedReference(Node):
     attr_names = ()
 
 class StringElement(Node):
-
     def __init__(self, ident, element):
         self.ident = ident
         self.element = element
