@@ -128,9 +128,7 @@ class Visitor(NodeVisitor):
 
     def raw_type_binary(self, node, op, left, right):
         if left.type != right.type:
-            #error(node.lineno,
-            #print("Binary operator {} does not have matching types".format(op))
-            print('Error, {} {} {} is not supported'.format(left.repr, op, right.repr))
+            print('Error, {} {} {} is not supported'.format(left.type[-1] , op, right.type[-1]))
             return left.type
         if op not in left.type[-1].binop:
             print('Error, {} is not supported for {}'.format(op, left.type[-1]))
