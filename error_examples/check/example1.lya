@@ -1,4 +1,6 @@
 /* example1: */
- 
-syn a = 1, b = 2;
+
+syn a, b = 1;
+syn c = 2, d = 'a';
+syn e = 3, f = 1;
 

@@ -1,4 +1,8 @@
 /* example1: */
 
-dcl z,x int;
-dcl z int;
+dcl n int = 0;
+syn a = 1+n;
+
+
+syn b = 10;
+b = 1;

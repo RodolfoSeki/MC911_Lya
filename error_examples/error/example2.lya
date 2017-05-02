@@ -1,5 +1,11 @@
 /* example1: */
 
 z = 1;
+dcl z int;
 
-dcl z,x int;
+dcl x int;
+dcl x int;
+dcl x, a, b int;
+
+dcl y int;
+y = 'a';

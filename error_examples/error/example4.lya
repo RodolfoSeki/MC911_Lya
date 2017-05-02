@@ -1,6 +1,0 @@
-/* example4: */
- 
-dcl z,x int;
-
-x = 'a';
-
