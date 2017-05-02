@@ -22,15 +22,16 @@ class NodeVisitor(object):
         This examines the node to see if it has _fields, is a list,
         or can be further traversed.
         """
-        if len(node.children()) == 1:
-            self.visit(node.children()[0])
-            try:
+        for child in node.children():
+            self.visit(child)
+            if hasattr(child, 'type'):
                 node.type = node.children()[0].type
+            if hasattr(child, 'repr'):
                 node.repr = node.children()[0].repr
-            except AttributeError:
+            else:
                 node.repr = node.__class__.__name__
-        else:
-            print('Erro child ' + node.__class__.__name__)
+            if hasattr(child, 'syn'):
+                node.syn = node.children()[0].syn
 
 class SymbolTable(dict):
     """
@@ -148,6 +149,8 @@ class Visitor(NodeVisitor):
             return 
 
         node.type = self.raw_type_binary(node, op, left, right)
+        if hasattr(left, 'syn') and hasattr(right, 'syn'):
+            node.syn = True
         node.repr = ' '.join([left.repr, op, right.repr])
     
     def visitUnaryExp(self, node, val, op):
@@ -158,6 +161,8 @@ class Visitor(NodeVisitor):
             return 
 
         node.type = self.raw_type_unary(node, op, val)
+        if hasattr(val, 'syn'):
+            node.syn = True
         node.repr = ''.join([op, val.repr])
 
     def visit_Program(self, node):
@@ -191,6 +196,9 @@ class Visitor(NodeVisitor):
     def visit_SynonymDefinition(self, node):
         self.visit(node.mode)
         self.visit(node.constant_exp)
+        if not hasattr(node.constant_exp, 'syn'):
+            print('Error, in synonym definition, {} is not constant'.format(node.constant_exp.repr))
+
         if node.mode is not None:
             if node.mode.type != node.constant_exp.type:
                 print('Error, {} is not {}'.format(node.constant_exp.repr, node.mode.repr))
@@ -325,6 +333,7 @@ class Visitor(NodeVisitor):
 
     def visit_IntegerLiteral(self, node):
         node.type = [int_type]
+        node.syn = True
         node.repr = node.const
 
     def visit_BooleanLiteral(self, node):
@@ -421,15 +430,12 @@ class Visitor(NodeVisitor):
         self.visit(node.location)
         left = node.location
         right = node.expression
+        if hasattr(left, 'syn'):
+            print("Error, can't assign constant value {}".format(left.repr))
         if left.type != right.type:
             print("Error, can't assign {} to {}".format(right.type, left.type))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
-
-    def visit_IfAction(self, node):
-        self.visit(node.if_exp)
-        self.visit(node.then_exp)
-        self.visit(node.else_exp)
 
     def visit_ThenClause(self, node):
         self.environment.push(node)

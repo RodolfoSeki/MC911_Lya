@@ -113,6 +113,7 @@ class SynonymDefinition(Node):
 
     attr_names = ()
 
+
 class NewModeStatement(Node):
     def __init__(self, mode):
         self.mode = mode 
