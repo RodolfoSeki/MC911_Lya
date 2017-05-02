@@ -836,7 +836,7 @@ class MyParser(object):
         ''' result_spec : RETURNS LPAREN mode RPAREN
                         | RETURNS LPAREN mode LOC RPAREN
         '''
-        if len(p) == 2:
+        if len(p) == 5:
             p[0] = ast.ResultSpec(p[3])
         else:
             p[0] = ast.ResultSpec(p[3], loc=True)

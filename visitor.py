@@ -83,14 +83,17 @@ class Environment(object):
         })
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
+        print('New scope for {}'.format(enclosure.__class__.__name__))
     def pop(self):
         self.stack.pop()
+        print ('End scope')
     def peek(self):
         return self.stack[-1]
     def scope_level(self):
         return len(self.stack)
     def add_local(self, name, value):
         self.peek().add(name, value)
+        print('Name {} with type {} was added to scope {}'.format(name, value, self.scope_level()))
     def add_root(self, name, value):
         self.root.add(name, value)
     def lookup(self, name):
@@ -527,11 +530,13 @@ class Visitor(NodeVisitor):
         node.repr = node.name.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
 
     def visit_ProcedureStatement(self, node):
-        self.visit(node.procedure_def)
 
+        self.visit(node.procedure_def.result_spec)
         if self.environment.find(node.label.name):
             print('Error, {} name already used'.format(node.label.name))
-        self.environment.add_local(node.label.name, node.procedure_def.type)
+        self.environment.add_local(node.label.name, node.procedure_def.result_spec.type)
+
+        self.visit(node.procedure_def)
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
 
     def visit_ProcedureDefinition(self, node):
@@ -539,13 +544,11 @@ class Visitor(NodeVisitor):
         node.environment = self.environment
         node.symtab = self.environment.peek()
 
-        for stmt in node.stmt_list:
-            self.visit(stmt)
-
-        self.visit(node.result_spec)
-
         for param in node.formal_parameter_list:
             self.visit(param)
+
+        for stmt in node.stmt_list:
+            self.visit(stmt)
 
         self.environment.pop()
 
@@ -554,10 +557,9 @@ class Visitor(NodeVisitor):
 
     def visit_FormalParameter(self, node):
         self.visit(node.param_spec)
-        for param in node.id_list:
-            self.visit(param)
-            self.environment.add_local(param.repr, node.param_spec.type)
-        node.repr = ', '.join([param.repr for param in node.id_list]) + ' ' + node.param_spec.repr
+        for identifier in node.id_list:
+            self.environment.add_local(identifier.name, node.param_spec.type)
+        node.repr = ', '.join([identifier.name for identifier in node.id_list]) + ' ' + node.param_spec.repr
 
     def visit_ParameterSpec(self, node):
         self.visit(node.mode)
