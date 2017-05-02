@@ -132,7 +132,7 @@ class MyParser(object):
     def p_mode_definition(self, p):
         ''' mode_definition : identifier_list EQUALS mode
         '''
-        p[0] = ModeDefinition(p[1], p[3])
+        p[0] = ast.ModeDefinition(p[1], p[3])
 
 
     def p_mode(self, p):

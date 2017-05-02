@@ -1,6 +1,7 @@
 /* example1: */
 
 syn a, b = 1;
-syn c = 2, d = 'a';
+syn c = 2, d = 'z';
 syn e = 3, f = 1;
+syn var = true;
 

@@ -538,7 +538,9 @@ class Visitor(NodeVisitor):
         self.visit(node.procedure_def.result_spec)
         if self.environment.find(node.label.name):
             print('Error, {} name already used'.format(node.label.name))
-        self.environment.add_local(node.label.name, node.procedure_def.result_spec.type)
+        print(node.label.name)
+        print(node.procedure_def.result_spec)
+        self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else none_type)
 
         self.visit(node.procedure_def)
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
@@ -557,6 +559,7 @@ class Visitor(NodeVisitor):
         self.environment.pop()
 
         node.type = node.result_spec.type if node.result_spec else none_type
+        
         node.repr = 'PROC (' + ', '.join([param.repr for param in node.formal_parameter_list]) + ')'
 
     def visit_FormalParameter(self, node):

@@ -331,7 +331,8 @@ class PrimitiveValue(Node):
 
     def __init__(self, val):
         self.val = val
-
+        self.syn = True
+        
     def children(self):
         listchildren = []
         if self.val is not None: listchildren.append(self.val)
