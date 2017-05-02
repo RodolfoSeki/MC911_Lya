@@ -1,0 +1,5 @@
+/* example7 */
+ 
+dcl v array[0:100] array[0:100] int;
+
+v[0][0] = 10;

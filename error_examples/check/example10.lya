@@ -1,0 +1,11 @@
+/* example10 */
+
+f: proc (s int) returns (int loc);
+	dcl x int;
+	x = 10;
+	
+	return ->x;
+end;
+
+dcl k int ref;
+k = f(3);

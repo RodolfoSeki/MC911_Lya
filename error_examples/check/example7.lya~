@@ -1,0 +1,6 @@
+/* Bubble sort code: */
+ 
+dcl v array[0:100] array[0:100] int;
+dcl n, c, d, swap  int;
+
+v[0][0] = 10;
