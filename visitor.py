@@ -5,9 +5,12 @@ class NodeVisitor(object):
         Execute a method of the form visit_NodeName(node) where
         NodeName is the name of the class of a particular node.
         """
-        print('Visiting ' + node.__class__.__name__)
         if node:
             method = 'visit_' + node.__class__.__name__
+#            if hasattr(self, method):
+#                print('Specific visitor ' + method)
+#            else:
+#                print('Generic_visit for ' + node.__class__.__name__)
             visitor = getattr(self, method, self.generic_visit)
             return visitor(node)
         else:
@@ -21,21 +24,13 @@ class NodeVisitor(object):
         """
         if len(node.children()) == 1:
             self.visit(node.children()[0])
-            node.type = node.children()[0].type
-            node.repr = node.children()[0].repr
+            try:
+                node.type = node.children()[0].type
+                node.repr = node.children()[0].repr
+            except AttributeError:
+                node.repr = node.__class__.__name__
         else:
             print('Erro child ' + node.__class__.__name__)
-
-        """
-        for field in getattr(node,"_fields"):
-            value = getattr(node,field,None)
-            if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, AST):
-                        self.visit(item)
-            elif isinstance(value, AST):
-                self.visit(value)
-        """
 
 class SymbolTable(dict):
     """
@@ -71,6 +66,7 @@ int_type = Type("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '
 bool_type = Type("bool", ['!'], ['==', '!='])
 char_type = Type("char", [], [])
 string_type = Type("string", [], ['+', '==', '!=', '&', '&='])
+pointer_type = Type("addr", [], ['==', '!='])
 array_type = Type("array", [], ['==', '!='])
 
 class Environment(object):
@@ -121,21 +117,22 @@ class Visitor(NodeVisitor):
         self.environment = Environment()
 
     def raw_type_unary(self, node, op, val):
-        if op not in left.type.unary_ops:
-            print('Error, {} is not supported for {}'.format(op, val.raw_type))
+        if op not in val.type[-1].unaryop:
+            print('Error, {} is not supported for {}'.format(op, val.type[-1]))
         return val.type
 
     def raw_type_binary(self, node, op, left, right):
-
         if left.type != right.type:
             #error(node.lineno,
             #print("Binary operator {} does not have matching types".format(op))
             print('Error, {} {} {} is not supported'.format(left.repr, op, right.repr))
             return left.type
-        if op not in left.type.binop:
-            print('Error, {} is not supported for {}'.format(op, left.type))
-        if op not in right.type.binop:
-            print('Error, {} is not supported for {}'.format(op, right.type))
+        if op not in left.type[-1].binop:
+            print('Error, {} is not supported for {}'.format(op, left.type[-1]))
+        if op not in right.type[-1].binop:
+            print('Error, {} is not supported for {}'.format(op, right.type[-1]))
+        if op.upper() in ('&&', '||', '>', '<', '>=', '<=', 'IN'):
+            return [bool_type]
         return left.type
 
     def visitBinaryExp(self, node, left, right, op):
@@ -147,7 +144,7 @@ class Visitor(NodeVisitor):
             return 
 
         node.type = self.raw_type_binary(node, op, left, right)
-        node.repr = ' '.join([left.name, op, right.name])
+        node.repr = ' '.join([left.repr, op, right.repr])
     
     def visitUnaryExp(self, node, val, op):
         self.visit(val)
@@ -156,8 +153,8 @@ class Visitor(NodeVisitor):
             node.repr = val.repr
             return 
 
-        node.type = raw_type_unary(node, op, val)
-        node.repr = ''.join([op, val.name])
+        node.type = self.raw_type_unary(node, op, val)
+        node.repr = ''.join([op, val.repr])
 
     def visit_Program(self, node):
         self.environment.push(node)
@@ -165,11 +162,7 @@ class Visitor(NodeVisitor):
         node.symtab = self.environment.peek()
         # Visit all of the statements
         for stmt in node.stmt_list: 
-            self.visit_Statement(stmt)
-
-    def visit_Statement(self, node):
-        for child in node.children():
-            self.visit(child)
+            self.visit(stmt)
 
     def visit_Declaration(self, node):
         self.visit(node.mode)
@@ -183,14 +176,11 @@ class Visitor(NodeVisitor):
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error, {} already declared'.format(identifier.repr))
-            if node.value is not None:
-                self.environment.add_local(identifier.repr, node.value.type)
-            else:
-                self.environment.add_local(identifier.repr, identifier.type)
+            self.environment.add_local(identifier.repr, node.mode.type)
 
     def visit_Identifier(self, node):
         node.repr = node.name
-        node.type = self.environment.lookup(node.name)
+        node.type = self.environment.lookup(node.repr)
         if node.type is None:
             print('Error, {} used but not declared'.format(node.repr))
                 
@@ -216,18 +206,18 @@ class Visitor(NodeVisitor):
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error, {} already exists'.format(identifier.repr))
-            self.environment.add_root(identifier.repr, identifier.type)
+            self.environment.add_local(identifier.repr, identifier.type)
 
     def visit_IntegerMode(self, node):
-        node.type = int_type
+        node.type = [int_type]
         node.repr = 'INT'
 
     def visit_BooleanMode(self, node):
-        node.type = bool_type
+        node.type = [bool_type]
         node.repr = 'BOOL'
 
     def visit_CharacterMode(self, node):
-        node.type = char_type
+        node.type = [char_type]
         node.repr = 'CHAR'
 
     def visit_DiscreteRangeMode(self, node):
@@ -239,50 +229,161 @@ class Visitor(NodeVisitor):
     def visit_LiteralRange(self, node):
         self.visit(node.lower)
         self.visit(node.upper)
-        if node.lower.type != int_type:
+        if node.lower.type[-1] != int_type:
             print('Error, literal range lower bound cannot be {}'.format(lower.type))
-        if node.upper.type != int_type:
+        if node.upper.type[-1] != int_type:
             print('Error, literal range upper bound cannot be {}'.format(upper.type))
 
         node.type = node.lower.type
         node.repr = node.lower.repr + ':' + node.upper.repr
 
+    def visit_ReferenceMode(self, node):
+        self.visit(node.mode)
+        node.type = node.mode.type + [pointer_type]
+
     def visit_StringMode(self, node):
         self.visit(node.length)
-        if node.length.type != int_type:
-            print('Error, string length cannot be {}'.format(length.type))
+        if node.length.type[-1] != int_type:
+            print('Error, string length cannot be {}'.format(node.length.type[-1]))
 
-        node.type = string_type
-        node.repr = 'CHARS [{}]'.format(length.repr)
+        node.type = [char_type, string_type]
+        node.repr = 'CHARS [{}]'.format(node.length.repr)
 
     def visit_ArrayMode(self, node):
         for index_mode in node.index_mode_list:
             self.visit(index_mode)
         self.visit(node.mode)
 
-        node.type = array_type
-        node.arrtype = mode.type
-        node.repr = 'ARRAY [{}] {}'.format(', '.join(node.index_mode_list), mode)
+        node.type = node.mode.type + [array_type]
+        node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
+
+    def visit_DereferencedReference(self, node):
+        self.visit(node.loc)
+        node.type = node.loc.type[0:-1]
+        node.repr = node.loc.repr + '->'
+
+    def visit_SynStmt(self, node):
+        # Visit all of the synonyms
+        for syn in node.syns:
+            self.visit(syn)
+    
+    def visit_StringElement(self, node):
+        self.visit(node.ident)
+        self.visit(node.element)
+        if node.element.type[-1] != int_type:
+            print('Error, index {} should be int'.format(element.repr))
+            
+        node.type = node.ident.type[0:-1] # element type
+        node.repr = '{}[{}]'.format(node.ident.repr, node.element.repr)
+        
+    def visit_StringSlice(self, node):
+        self.visit(node.loc)
+        self.visit(node.left)
+        self.visit(node.right)
+        
+        if node.left.type[-1] != int_type:
+            print('Error, {} should be int'.format(left.repr))
+            
+        if node.right.type[-1] != int_type:
+            print('Error, {} should be int'.format(right.repr))
+        
+        node.type = node.loc.type
+        node.repr = '{}[{}:{}]'.format(node.loc.repr, node.left.repr, node.right.repr)
+    
+    def visit_ArrayElement(self, node):
+        self.visit(node.loc)
+        
+        for exp in node.expr_list:
+            self.visit(exp)
+            if exp.type[-1] != int_type:
+                print('Error, index {} should be int'.format(exp.repr))
+
+        if len(node.expr_list) == 1:
+            node.type = node.loc.type[0:-1] # element type
+        else:
+            node.type = node.loc.type
+        node.repr = '{}[{}]'.format(node.loc.repr, ', '.join([exp.repr for exp in node.expr_list]))
+    
+    def visit_ArraySlice(self, node):
+        self.visit(node.loc)
+        self.visit(node.left)
+        self.visit(node.right)
+        
+        if node.left.type[-1] != int_type:
+            print('Error, {} should be int'.format(left.repr))
+            
+        if node.right.type[-1] != int_type:
+            print('Error, {} should be int'.format(right.repr))
+            
+        node.type = node.loc.type
+        node.repr = '{}[{}:{}]'.format(node.loc.repr, node.left.repr, node.right.repr)
+        
 
     def visit_IntegerLiteral(self, node):
-        node.type = int_type
+        node.type = [int_type]
         node.repr = node.const
 
     def visit_BooleanLiteral(self, node):
-        node.type = bool_type
+        node.type = [bool_type]
         node.repr = node.val
 
     def visit_CharacterLiteral(self, node):
-        node.type = char_type
+        node.type = [char_type]
         node.repr = "'" + chr(node.val) + "'"
         
     def visit_EmptyLiteral(self, node):
-        node.type = string_type
+        node.type = [pointer_type]
         node.repr = node.val
 
     def visit_CharacterStringLiteral(self, node):
-        node.type = string_type
-        node.repr = node.val
+        node.type = [string_type, char_type]
+        node.repr = node.string
+
+    def visit_ValueArrayElement(self, node):
+        self.visit(node.value)
+        
+        for exp in node.exp_list:
+            self.visit(exp)
+            if exp.type[-1] != int_type:
+                print('Error, index {} should be int'.format(exp.repr))
+
+        if len(node.exp_list) == 1:
+            node.type = node.value.type[0:-1] # element type
+        else:
+            node.type = node.value.type
+
+        node.repr = '{}[{}]'.format(node.value.repr, ', '.join([exp.repr for exp in node.exp_list]))
+    
+    def visit_ValueArraySlice(self, node):
+        self.visit(node.value)
+        self.visit(node.lower)
+        self.visit(node.upper)
+        
+        if node.lower.type[-1] != int_type:
+            print('Error, {} should be int'.format(lower.repr))
+            
+        if node.upper.type[-1] != int_type:
+            print('Error, {} should be int'.format(upper.repr))
+            
+        node.type = node.value.type
+        node.repr = '{}[{}:{}]'.format(node.value.repr, node.lower.repr, node.upper.repr)
+    
+    def visit_ConditionalExpression(self, node):
+        self.visit(node.if_expr)
+        self.visit(node.then_expr)
+        self.visit(node.else_expr)
+        self.visit(node.elseif_expr)
+
+        node.type = node.if_expr.type
+        node.repr = 'IF STATEMENT'
+        
+    def visit_ConditionalExpression(self, node):
+        self.visit(node.bool_expr)
+        self.visit(node.then_expr)
+        self.visit(node.elseif_expr)
+
+        node.type = node.if_expr.type
+        node.repr = 'ELSEIF STATEMENT'
 
     def visit_Operand0(self, node):
         self.visitBinaryExp(node, node.operand0, node.operand1, node.operator.op)
@@ -296,6 +397,21 @@ class Visitor(NodeVisitor):
     def visit_Operand3(self, node):
         self.visitUnaryExp(node, node.operator.op, node.operand)
 
+    def visit_ReferencedLocation(self, node):
+        self.visit(node.location)
+        node.type = node.location.type + [pointer_type]
+        node.repr = '->' + node.location.repr
+
+    def visit_ActionStatement(self, node):
+        if node.label:
+            node.label.repr = node.label.name
+            if self.environment.find(node.label.name):
+                print('Error, {} already declared'.format(node.label.repr))
+            self.environment.add_local(node.label.repr, None)
+        self.visit(node.action)
+        # node.type = node.action.type
+        node.repr = node.action.repr
+
     def visit_AssignmentAction(self, node):
         self.visit(node.expression)
         self.visit(node.location)
@@ -303,55 +419,160 @@ class Visitor(NodeVisitor):
         right = node.expression
         if left.type != right.type:
             print("Error, can't assign {} to {}".format(right.type, left.type))
-        node.type = left.type
+        #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
-    def visit_SynStmt(self, node):
-        # Visit all of the synonyms
-        for syn in node.syns:
-            self.visit(syn)
+    def visit_IfAction(self, node):
+        self.visit(node.if_exp)
+        self.visit(node.then_exp)
+        self.visit(node.else_exp)
+
+    def visit_ThenClause(self, node):
+        self.environment.push(node)
+        node.environment = self.environment
+        node.symtab = self.environment.peek()
+        for stmt in node.action_statement_list: 
+            self.visit(stmt)
+        self.environment.pop()
     
-    def visit_StringElement(self, node):
-        self.visit_Identifier(node.ident)
-        self.visit(node.element)
-        if node.element.type != int_type:
-            print('Error, {} should be int'.format(element.repr))
+    def visit_ElseClause(self, node):
+        self.environment.push(node)
+        node.environment = self.environment
+        node.symtab = self.environment.peek()
+        if node.else_type == 'else':
+            for stmt in node.bool_or_statement_list: 
+                self.visit(stmt)
+        else:
+            self.visit(node.then_exp)
+            self.visit(node.else_exp)
             
-        return node.ident.type
-        
-    def visit_StringSlice(self, node):
-        self.visit_Identifier(node.loc)
-        self.visit(node.left)
-        self.visit(node.right)
-        
-        if node.left.type != int_type:
-            print('Error, {} should be int'.format(left.repr))
+        self.environment.pop()
+
+    def visit_DoAction(self, node):
+        self.environment.push(node)
+        node.environment = self.environment
+        node.symtab = self.environment.peek()
+
+        self.visit(node.ctrl_part)
+
+        for stmt in node.action_statement_list: 
+            self.visit(stmt)
             
-        if node.right.type != int_type:
-            print('Error, {} should be int'.format(right.repr))
-        
-        return node.loc.type
-    
-    def visit_ArrayElement(self, node):
-        self.visit_Identifier(node.loc)
-        
-        for exp in node.expr_list:
-            self.visit(exp)
-            if exp.type != int_type:
-                print('Error, {} should be int'.format(exp.repr))
-                
-        return node.loc.type
-    
-    def visit_ArraySlice(self, node):
-        self.visit_Identifier(node.loc)
-        self.visit(node.left)
-        self.visit(node.right)
-        
-        if node.left.type != int_type:
-            print('Error, {} should be int'.format(left.repr))
-            
-        if node.right.type != int_type:
-            print('Error, {} should be int'.format(right.repr))
-            
-        return node.loc.type
+        self.environment.pop()
+
+    def visit_ControlPart(self, node):
+        self.environment.push(node)
+        node.environment = self.environment
+        node.symtab = self.environment.peek()
+
+        self.visit(node.ctrl1)
+        self.visit(node.ctrl2)
+
+        self.environment.pop()
+
+    def visit_StepEnumeration(self, node):
+        self.visit(node.counter)
+        self.visit(node.start)
+        self.visit(node.end)
+        self.visit(node.step)
+
+        if node.counter.type[-1] != int_type:
+            print('Error, loop counter {} must be of type int'.format(node.counter.repr))
+        if node.start.type[-1] != int_type:
+            print('Error, loop start value {} must be of type int'.format(node.start.repr))
+        if node.end.type[-1] != int_type:
+            print('Error, loop end value {} must be of type int'.format(node.end.repr))
+        if node.step and node.step.type[-1] != int_type:
+            print('Error, loop step value {} must be of type int'.format(node.step.repr))
+
+    def visit_RangeEnumeration(self, node):
+        self.visit(node.counter)
+        self.visit(node.mode)
+        if node.mode.type[-1] != int_type:
+            print('Error, range value {} must be of type int'.format(node.mode.repr))
+
+    def visit_WhileControl(self, node):
+        self.visit(node.bool_exp)
+        if node.bool_exp.type[-1] != bool_type:
+            print('Error, while control {} must be of type bool'.format(node.bool_exp.repr))
+
+    def visit_ProcedureCall(self, node):
+        self.visit(node.name)
+        for param in node.param_list: 
+            self.visit(param)
+
+        ## ajustar tipo e checar parametros
+
+    def visit_BuiltInCall(self, node):
+        returnType = {
+                'ABS':int_type, 
+                'ASC':int_type, 
+                'LENGTH':int_type, 
+                'LOWER':string_type, 
+                'UPPER':string_type, 
+                'NUM':int_type,
+                'PRINT':int_type,
+                'READ':int_type
+                }
+
+        # check if one parameter only
+        if node.name.upper() in ('ABS', 'NUM', 'LENGTH', 'LOWER', 'UPPER', 'ASC'):
+            if len(node.param_list) > 1:
+                print('Error, {} expects one argument'.format(node.name.upper()))
+
+        node.type = [returnType[node.name.upper()]]
+        for param in node.param_list: 
+            self.visit(param)
+        node.repr = node.name.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
+
+    def visit_ProcedureStatement(self, node):
+        self.visit(node.label)
+        self.visit(node.procedure_def)
+        if self.environment.find(node.label.repr):
+            print('Error, {} name already used'.format(node.label.repr))
+        self.environment.add_local(node.label.repr, node.procedure_def.type)
+        node.repr = node.label.repr + ' : ' + node.procedure_def.repr 
+
+    def visit_ProcedureDefinition(self, node):
+        self.environment.push(node)
+        node.environment = self.environment
+        node.symtab = self.environment.peek()
+
+        for stmt in node.stmt_list:
+            self.visit(stmt)
+
+        self.visit(node.result_spec)
+
+        for param in node.formal_parameter_list:
+            self.visit(param)
+
+        self.environment.pop()
+
+        node.type = node.result_spec.type if node.result_spec else None
+        node.repr = 'PROC (' + ', '.join([param.repr for param in node.formal_parameter_list]) + ')'
+
+    def visit_FormalParameter(self, node):
+        self.visit(node.param_spec)
+        for param in node.id_list:
+            self.visit(param)
+            self.environment.add_local(param.repr, node.param_spec.type)
+        node.repr = ', '.join([param.repr for param in node.id_list]) + ' ' + node.param_spec.repr
+
+    def visit_ParameterSpec(self, node):
+        self.visit(node.mode)
+        node.type = node.mode.type
+        if node.loc:
+            node.repr = 'LOC ' + node.mode.repr
+        else:
+            node.repr = node.mode.repr
+
+    def visit_ResultSpec(self, node):
+        self.visit(node.mode)
+        if node.loc:
+            node.type = node.mode.type + [pointer_type]
+            node.repr = 'LOC ' + node.mode.repr
+        else:
+            node.type = node.mode.type
+            node.repr = node.mode.repr
+       
         

@@ -225,7 +225,11 @@ class StringMode(Node):
     def __init__(self, length):
         self.length = length
 
-    attr_names = ('length',)
+    def children(self):
+        listchildren = []
+        if self.length is not None: listchildren.append(self.length)
+        return listchildren
+    attr_names = ()
 
 class ArrayMode(Node):
     def __init__(self, index_mode_list, mode):
