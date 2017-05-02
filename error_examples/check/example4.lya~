@@ -1,0 +1,3 @@
+
+dcl a int;
+dcl b ref int;

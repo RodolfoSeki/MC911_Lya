@@ -1,0 +1,7 @@
+/* example9 */
+
+dcl a,b int;
+dcl c ref int;
+
+a = 10;
+b = null;

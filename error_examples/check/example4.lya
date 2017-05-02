@@ -1,0 +1,8 @@
+/* example4 */
+
+dcl a,b int;
+dcl c ref int;
+
+a = 10;
+b = ->a;
+c = b->;
