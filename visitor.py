@@ -67,6 +67,7 @@ bool_type = Type("bool", ['!'], ['==', '!='])
 char_type = Type("char", [], [])
 string_type = Type("string", [], ['+', '==', '!=', '&', '&='])
 pointer_type = Type("addr", [], ['==', '!='])
+none_type = Type("none", [], [])
 array_type = Type("array", [], ['==', '!='])
 
 class Environment(object):
@@ -526,12 +527,12 @@ class Visitor(NodeVisitor):
         node.repr = node.name.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
 
     def visit_ProcedureStatement(self, node):
-        self.visit(node.label)
         self.visit(node.procedure_def)
-        if self.environment.find(node.label.repr):
-            print('Error, {} name already used'.format(node.label.repr))
-        self.environment.add_local(node.label.repr, node.procedure_def.type)
-        node.repr = node.label.repr + ' : ' + node.procedure_def.repr 
+
+        if self.environment.find(node.label.name):
+            print('Error, {} name already used'.format(node.label.name))
+        self.environment.add_local(node.label.name, node.procedure_def.type)
+        node.repr = node.label.name + ' : ' + node.procedure_def.repr 
 
     def visit_ProcedureDefinition(self, node):
         self.environment.push(node)
@@ -548,7 +549,7 @@ class Visitor(NodeVisitor):
 
         self.environment.pop()
 
-        node.type = node.result_spec.type if node.result_spec else None
+        node.type = node.result_spec.type if node.result_spec else none_type
         node.repr = 'PROC (' + ', '.join([param.repr for param in node.formal_parameter_list]) + ')'
 
     def visit_FormalParameter(self, node):
