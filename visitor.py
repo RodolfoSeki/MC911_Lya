@@ -25,13 +25,13 @@ class NodeVisitor(object):
         for child in node.children():
             self.visit(child)
             if hasattr(child, 'type'):
-                node.type = node.children()[0].type
+                node.type = child.type
             if hasattr(child, 'repr'):
-                node.repr = node.children()[0].repr
+                node.repr = child.repr
             else:
                 node.repr = node.__class__.__name__
             if hasattr(child, 'syn'):
-                node.syn = node.children()[0].syn
+                node.syn = child.syn
 
 class SymbolTable(dict):
     """
@@ -134,7 +134,7 @@ class Visitor(NodeVisitor):
             print('Error, {} is not supported for {}'.format(op, left.type[-1]))
         if op not in right.type[-1].binop:
             print('Error, {} is not supported for {}'.format(op, right.type[-1]))
-        if op.upper() in ('&&', '||', '>', '<', '>=', '<=', 'IN'):
+        if op.upper() in ('&&', '||', '>', '<', '>=', '<=', 'IN', '!=', '=='):
             return [bool_type]
         return left.type
 

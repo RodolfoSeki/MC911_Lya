@@ -138,7 +138,8 @@ class MyLexer(object):
         pass
 
     def t_COMMENT(self, t):
-        r'\/\*(.|\n)*\*\/'
+        #r'\/\*(^(\*\/)|\n)*\*\/'
+        r'/\*[^*]*\*+(?:[^/*][^*]*\*+)*/'
         pass
 
     def t_SCONST(self, t):

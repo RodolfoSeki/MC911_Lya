@@ -339,7 +339,7 @@ class MyParser(object):
     def p_empty_literal(self, p):
         ''' empty_literal : NULL
         '''
-        p[0] = ast.EmptyLiteral('NULL')
+        p[0] = ast.EmptyLiteral()
 
 
     def p_character_string_literal(self, p):
