@@ -1,4 +1,6 @@
 /* example2: */
 
-/*type stack = array [1:10] int, b, c = char;*/
-type c = char;
+type stack = array [1:10] int, b, c = char;
+
+dcl s stack;
+

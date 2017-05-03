@@ -128,8 +128,9 @@ class Visitor(NodeVisitor):
 
     def raw_type_binary(self, node, op, left, right):
         if left.type != right.type:
-            print('Error, {} {} {} is not supported'.format(left.type[-1] , op, right.type[-1]))
-            return left.type
+            if not( left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
+                print('Error, {} {} {} is not supported'.format(left.type[-1] , op, right.type[-1]))
+                return left.type
         if op not in left.type[-1].binop:
             print('Error, {} is not supported for {}'.format(op, left.type[-1]))
         if op not in right.type[-1].binop:
@@ -147,7 +148,9 @@ class Visitor(NodeVisitor):
             return 
 
         node.type = self.raw_type_binary(node, op, left, right)
+        
         if hasattr(left, 'syn') and hasattr(right, 'syn'):
+            print("Entrou")
             node.syn = True
         node.repr = ' '.join([left.repr, op, right.repr])
     
@@ -176,7 +179,8 @@ class Visitor(NodeVisitor):
         self.visit(node.value)
         if node.value is not None:
             if node.mode.type != node.value.type:
-                print('Error, {} is not {}'.format(node.value.repr, node.mode.repr))
+                if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
+                    print('Error, {} is not {}'.format(node.value.repr, node.mode.repr))
 
         for identifier in node.id_list:
             identifier.type = node.mode.type
@@ -199,10 +203,12 @@ class Visitor(NodeVisitor):
 
         if node.mode is not None:
             if node.mode.type != node.constant_exp.type:
-                print('Error, {} is not {}'.format(node.constant_exp.repr, node.mode.repr))
-
+                if not (node.mode.type[-1] == pointer_type and node.constant_exp.type == [pointer_type]):
+                    print('Error, {} is not {}'.format(node.constant_exp.repr, node.mode.repr))
+            
         for identifier in node.id_list:
             identifier.type = node.constant_exp.type
+            identifier.syn = True
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error, {} already exists'.format(identifier.repr))
@@ -250,7 +256,8 @@ class Visitor(NodeVisitor):
     def visit_ReferenceMode(self, node):
         self.visit(node.mode)
         node.type = node.mode.type + [pointer_type]
-
+        node.repr = "REF " + node.mode.repr
+        
     def visit_StringMode(self, node):
         self.visit(node.length)
         if node.length.type[-1] != int_type:
@@ -272,10 +279,6 @@ class Visitor(NodeVisitor):
         node.type = node.loc.type[0:-1]
         node.repr = node.loc.repr + '->'
 
-    def visit_SynStmt(self, node):
-        # Visit all of the synonyms
-        for syn in node.syns:
-            self.visit(syn)
     
     def visit_StringElement(self, node):
         self.visit(node.ident)
@@ -337,19 +340,23 @@ class Visitor(NodeVisitor):
     def visit_BooleanLiteral(self, node):
         node.type = [bool_type]
         node.repr = node.val
+        node.syn = True
 
     def visit_CharacterLiteral(self, node):
         node.type = [char_type]
         node.repr = "'" + chr(node.val) + "'"
+        node.syn = True
         
     def visit_EmptyLiteral(self, node):
         node.type = [pointer_type]
         node.repr = node.val
-
+        node.syn = True
+        
     def visit_CharacterStringLiteral(self, node):
         node.type = [string_type, char_type]
         node.repr = node.string
-
+        node.syn = True
+        
     def visit_ValueArrayElement(self, node):
         self.visit(node.value)
         
@@ -431,7 +438,8 @@ class Visitor(NodeVisitor):
         if hasattr(left, 'syn'):
             print("Error, can't assign constant value {}".format(left.repr))
         if left.type != right.type:
-            print("Error, can't assign {} to {}".format(right.type, left.type))
+            if not( left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
+                print("Error, can't assign {} to {}".format(right.type, left.type))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
@@ -508,7 +516,9 @@ class Visitor(NodeVisitor):
         self.visit(node.name)
         for param in node.param_list: 
             self.visit(param)
-
+            
+        node.type = node.name.type
+        node.repr = node.name.repr.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
         ## ajustar tipo e checar parametros
 
     def visit_BuiltInCall(self, node):
@@ -538,8 +548,6 @@ class Visitor(NodeVisitor):
         self.visit(node.procedure_def.result_spec)
         if self.environment.find(node.label.name):
             print('Error, {} name already used'.format(node.label.name))
-        print(node.label.name)
-        print(node.procedure_def.result_spec)
         self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else none_type)
 
         self.visit(node.procedure_def)

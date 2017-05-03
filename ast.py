@@ -115,12 +115,13 @@ class SynonymDefinition(Node):
 
 
 class NewModeStatement(Node):
-    def __init__(self, mode):
-        self.mode = mode 
+    def __init__(self, mode_list):
+        self.mode_list = mode_list 
 
     def children(self):
         listchildren = []
-        if self.mode is not None: listchildren.append(self.mode)
+        for mode in self.mode_list:
+            listchildren.append(mode)
         return listchildren
         
     attr_names = ()
@@ -331,7 +332,6 @@ class PrimitiveValue(Node):
 
     def __init__(self, val):
         self.val = val
-        self.syn = True
         
     def children(self):
         listchildren = []
