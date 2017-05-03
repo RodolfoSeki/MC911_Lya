@@ -1,0 +1,7 @@
+/* example3: */
+
+dcl a, z int;
+z = if 2 then 2 else 3 fi;
+z = if z >= 2 then 2 else 'c' fi;
+z = if z >= 2 then 2 elsif z == 2 then 3 else 1 fi;
+

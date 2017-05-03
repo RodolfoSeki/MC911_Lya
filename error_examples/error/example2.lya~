@@ -1,4 +1,4 @@
-/* example2: */
+/* example1: */
 
 z = 1;
 dcl z int;

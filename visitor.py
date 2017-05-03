@@ -85,17 +85,17 @@ class Environment(object):
         })
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
-        print('New scope for {}'.format(enclosure.__class__.__name__))
+        #print('New scope for {}'.format(enclosure.__class__.__name__))
     def pop(self):
         self.stack.pop()
-        print ('End scope')
+        #print ('End scope')
     def peek(self):
         return self.stack[-1]
     def scope_level(self):
         return len(self.stack)
     def add_local(self, name, value):
         self.peek().add(name, value)
-        print('Name {} with type {} was added to scope {}'.format(name, value, self.scope_level()))
+        #print('Name {} with type {} was added to scope {}'.format(name, value, self.scope_level()))
     def add_root(self, name, value):
         self.root.add(name, value)
     def lookup(self, name):
@@ -196,6 +196,7 @@ class Visitor(NodeVisitor):
         if node.type is None:
             print('Error, {} used but not declared'.format(node.repr))
             node.type = [none_type]
+            self.environment.add_root(node.name, node.type)
             return
         if node.type[-1] == syn_type:
             node.syn = True
@@ -408,13 +409,31 @@ class Visitor(NodeVisitor):
         self.visit(node.elsif_expr)
 
         node.type = node.then_expr.type
+        
+        if not(node.if_expr.type == [bool_type]):
+            print('Error, condition control {} must be of type bool'.format(node.if_expr.repr))
+        
+        if (node.elsif_expr != None):
+            if not(node.then_expr.type == node.else_expr.type == node.elsif_expr.type):
+                print("Error, expressions {}, {} and {} are not same type".format(node.then_expr.repr, node.else_expr.repr, node.elsif_expr.repr))
+        else:
+            if not(node.then_expr.type == node.else_expr.type):
+                print("Error, expressions {} and {} are not same type".format(node.then_expr.repr, node.else_expr.repr))
         node.repr = 'Conditional Expression'
         
     def visit_ElsifExpression(self, node):
         self.visit(node.bool_expr)
         self.visit(node.then_expr)
         self.visit(node.elsif_expr)
-
+            
+        if not(node.bool_expr.type == [bool_type] ):
+            print("Error, expression {} is not type bool".format(node.bool_expr.repr))
+        
+        if (node.elsif_expr != None):
+            if not(node.then_expr.type == node.elsif_expr.type ):
+                print("Error, expressions {} and {} are not same type".format(node.then_expr.repr, node.elsif_expr.repr))
+        
+        
         node.type = node.then_expr.type
         node.repr = 'Elsif Expression'
 
