@@ -230,8 +230,8 @@ class MyParser(object):
                      | string_slice
                      | string_element
         '''
+        
         p[0] = ast.Location(p[1])
-
 
     def p_dereferenced_reference(self, p):
         ''' dereferenced_reference : location ARROW
@@ -242,7 +242,6 @@ class MyParser(object):
     def p_string_element(self, p):
         ''' string_element : identifier LBRACKET start_element RBRACKET
         '''
-
         p[0] = ast.StringElement(p[1], p[3])
 
 

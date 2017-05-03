@@ -271,11 +271,14 @@ class Visitor(NodeVisitor):
         node.repr = 'CHARS [{}]'.format(node.length.repr)
 
     def visit_ArrayMode(self, node):
+        self.visit(node.mode)
+        node.type = []
+        node.type += node.mode.type
+        
         for index_mode in node.index_mode_list:
             self.visit(index_mode)
-        self.visit(node.mode)
-
-        node.type = node.mode.type + [array_type]
+            node.type +=  [array_type]
+        
         node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
 
     def visit_DereferencedReference(self, node):
