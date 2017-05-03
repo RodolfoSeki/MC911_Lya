@@ -20,6 +20,7 @@ fibo(3,k);
 dcl a,b int;
 dcl c ref int; 
 
+
 a = 10;
 c = ->a;
 b = c->;
