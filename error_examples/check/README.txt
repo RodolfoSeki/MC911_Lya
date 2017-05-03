@@ -23,3 +23,6 @@ List of tests the compiler check
 6 CONDITIONAL
   conditional operations in if statement (>=, &&..)
 
+7 String
+	check slicing
+	check operations of string type

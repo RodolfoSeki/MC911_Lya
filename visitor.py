@@ -66,7 +66,7 @@ class Type(object):
 int_type = Type("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '<', '>=', '<', '<='])
 bool_type = Type("bool", ['!'], ['==', '!='])
 char_type = Type("char", [], [])
-string_type = Type("string", [], ['+', '==', '!=', '&', '&='])
+string_type = Type("string", [], ['+', '==', '!=', '&'])
 pointer_type = Type("addr", [], ['==', '!='])
 none_type = Type("none", [], [])
 array_type = Type("array", [], ['==', '!='])
@@ -192,6 +192,7 @@ class Visitor(NodeVisitor):
     def visit_Identifier(self, node):
         node.repr = node.name
         node.type = self.environment.lookup(node.repr)
+        
         if node.type is None:
             print('Error, {} used but not declared'.format(node.repr))
             node.type = [none_type]
@@ -199,7 +200,7 @@ class Visitor(NodeVisitor):
         if node.type[-1] == syn_type:
             node.syn = True
             node.type = node.type[0:-1]
-                
+        
     def visit_SynonymDefinition(self, node):
         self.visit(node.mode)
         self.visit(node.constant_exp)
@@ -455,6 +456,9 @@ class Visitor(NodeVisitor):
             if left.type and right.type:
                 if not(left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
                     print("Error, can't assign {} to {}".format(right.type, left.type))
+        if(len(node.assigning_op.op) == 2):
+            if(node.assigning_op.op[0] not in right.type[-1].binop):
+                print('Error, {} is not supported for {}'.format(node.assigning_op.op, right.type[-1]))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
@@ -586,11 +590,10 @@ class Visitor(NodeVisitor):
 
     def visit_ResultSpec(self, node):
         self.visit(node.mode)
+        node.type = node.mode.type
         if node.loc:
-            node.type = node.mode.type + [pointer_type]
             node.repr = 'LOC ' + node.mode.repr
         else:
-            node.type = node.mode.type
             node.repr = node.mode.repr
        
         

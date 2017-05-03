@@ -113,13 +113,15 @@ class SynonymDefinition(Node):
 
     attr_names = ()
 
+
 class NewModeStatement(Node):
-    def __init__(self, mode):
-        self.mode = mode 
+    def __init__(self, mode_list):
+        self.mode_list = mode_list 
 
     def children(self):
         listchildren = []
-        if self.mode is not None: listchildren.append(self.mode)
+        for mode in self.mode_list:
+            listchildren.append(mode)
         return listchildren
         
     attr_names = ()
@@ -225,7 +227,11 @@ class StringMode(Node):
     def __init__(self, length):
         self.length = length
 
-    attr_names = ('length',)
+    def children(self):
+        listchildren = []
+        if self.length is not None: listchildren.append(self.length)
+        return listchildren
+    attr_names = ()
 
 class ArrayMode(Node):
     def __init__(self, index_mode_list, mode):
@@ -279,8 +285,8 @@ class StringElement(Node):
 class StringSlice(Node):
     def __init__(self, loc, left, right):
         self.loc = loc
-        self.left = loc
-        self.right = loc
+        self.left = left
+        self.right = right
 
     def children(self):
         listchildren = []
@@ -326,7 +332,7 @@ class PrimitiveValue(Node):
 
     def __init__(self, val):
         self.val = val
-
+        
     def children(self):
         listchildren = []
         if self.val is not None: listchildren.append(self.val)

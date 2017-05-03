@@ -189,7 +189,7 @@ class BooleanMode(Node):
 class DiscreteRangeMode(Node):
     def __init__(self, name, literal_range):
         self.name = name
-        self.literal_range
+        self.literal_range = literal_range
 
     def children(self):
         listchildren = []

@@ -11,7 +11,3 @@ List of errors the compiler check
 
 3 Operations
 	check unsupported operations for types
-		bool
-		string
-		int
-		char
