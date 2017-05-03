@@ -70,6 +70,7 @@ string_type = Type("string", [], ['+', '==', '!=', '&', '&='])
 pointer_type = Type("addr", [], ['==', '!='])
 none_type = Type("none", [], [])
 array_type = Type("array", [], ['==', '!='])
+syn_type = Type("syn", [], [])
 
 class Environment(object):
     def __init__(self):
@@ -150,11 +151,10 @@ class Visitor(NodeVisitor):
         node.type = self.raw_type_binary(node, op, left, right)
         
         if hasattr(left, 'syn') and hasattr(right, 'syn'):
-            print("Entrou")
             node.syn = True
         node.repr = ' '.join([left.repr, op, right.repr])
     
-    def visitUnaryExp(self, node, val, op):
+    def visitUnaryExp(self, node, op, val):
         self.visit(val)
         if op == None:
             node.type = val.type
@@ -194,6 +194,11 @@ class Visitor(NodeVisitor):
         node.type = self.environment.lookup(node.repr)
         if node.type is None:
             print('Error, {} used but not declared'.format(node.repr))
+            node.type = [none_type]
+            return
+        if node.type[-1] == syn_type:
+            node.syn = True
+            node.type = node.type[0:-1]
                 
     def visit_SynonymDefinition(self, node):
         self.visit(node.mode)
@@ -207,8 +212,7 @@ class Visitor(NodeVisitor):
                     print('Error, {} is not {}'.format(node.constant_exp.repr, node.mode.repr))
             
         for identifier in node.id_list:
-            identifier.type = node.constant_exp.type
-            identifier.syn = True
+            identifier.type = node.constant_exp.type + [syn_type]
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error, {} already exists'.format(identifier.repr))
@@ -353,7 +357,7 @@ class Visitor(NodeVisitor):
         node.syn = True
         
     def visit_CharacterStringLiteral(self, node):
-        node.type = [string_type, char_type]
+        node.type = [char_type, string_type]
         node.repr = node.string
         node.syn = True
         
@@ -390,18 +394,18 @@ class Visitor(NodeVisitor):
         self.visit(node.if_expr)
         self.visit(node.then_expr)
         self.visit(node.else_expr)
-        self.visit(node.elseif_expr)
+        self.visit(node.elsif_expr)
 
-        node.type = node.if_expr.type
-        node.repr = 'IF STATEMENT'
+        node.type = node.then_expr.type
+        node.repr = 'Conditional Expression'
         
-    def visit_ConditionalExpression(self, node):
+    def visit_ElsifExpression(self, node):
         self.visit(node.bool_expr)
         self.visit(node.then_expr)
-        self.visit(node.elseif_expr)
+        self.visit(node.elsif_expr)
 
-        node.type = node.if_expr.type
-        node.repr = 'ELSEIF STATEMENT'
+        node.type = node.then_expr.type
+        node.repr = 'Elsif Expression'
 
     def visit_Operand0(self, node):
         self.visitBinaryExp(node, node.operand0, node.operand1, node.operator.op)
@@ -413,7 +417,7 @@ class Visitor(NodeVisitor):
         self.visitBinaryExp(node, node.operand2, node.operand3, node.operator.op)
 
     def visit_Operand3(self, node):
-        self.visitUnaryExp(node, node.operator.op, node.operand)
+        self.visitUnaryExp(node, node.operator.op, node.operand_or_literal)
 
     def visit_ReferencedLocation(self, node):
         self.visit(node.location)
@@ -425,7 +429,7 @@ class Visitor(NodeVisitor):
             node.label.repr = node.label.name
             if self.environment.find(node.label.name):
                 print('Error, {} already declared'.format(node.label.repr))
-            self.environment.add_local(node.label.repr, None)
+            self.environment.add_local(node.label.repr, [none_type])
         self.visit(node.action)
         # node.type = node.action.type
         node.repr = node.action.repr
@@ -436,10 +440,11 @@ class Visitor(NodeVisitor):
         left = node.location
         right = node.expression
         if hasattr(left, 'syn'):
-            print("Error, can't assign constant value {}".format(left.repr))
+            print("Error, can't reassign constant value {}".format(left.repr))
         if left.type != right.type:
-            if not( left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
-                print("Error, can't assign {} to {}".format(right.type, left.type))
+            if left.type and right.type:
+                if not(left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
+                    print("Error, can't assign {} to {}".format(right.type, left.type))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
@@ -548,7 +553,7 @@ class Visitor(NodeVisitor):
         self.visit(node.procedure_def.result_spec)
         if self.environment.find(node.label.name):
             print('Error, {} name already used'.format(node.label.name))
-        self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else none_type)
+        self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else [none_type])
 
         self.visit(node.procedure_def)
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
