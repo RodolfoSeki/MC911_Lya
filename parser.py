@@ -17,7 +17,6 @@ class MyParser(object):
     def p_program(self, p):
         'program : statement_list'
         p[0] = ast.Program(p[1])
-        p[0].lineno = p[1].lineno
 
     def p_statement_list(self, p):
         '''statement_list : statement
@@ -152,7 +151,7 @@ class MyParser(object):
                  | composite_mode
         '''
         p[0] = ast.Mode(p[1])
-        p[0].lineno = p.lineno(1)
+        p[0].lineno = p[1].lineno
 
 
     def p_discrete_mode(self, p):
@@ -840,7 +839,7 @@ class MyParser(object):
             p[0] = ast.BuiltInCall(p[1])
         else:
             p[0] = ast.BuiltInCall(p[1], p[3])
-        p[0].lineno = p[1].lineno
+        p[0].lineno = p.lineno(2)
 
 
 

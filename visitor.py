@@ -474,7 +474,7 @@ class Visitor(NodeVisitor):
         if left.type != right.type:
             if left.type and right.type:
                 if not(left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
-                    print("Error at line {}, can't assign {} to {}".format(node.lineno, right.type, left.type))
+                    print("Error at line {}, can't assign {} of type {} to {} of type {}".format(node.lineno, right.repr, right.type, left.repr, left.type))
         if(len(node.assigning_op.op) == 2):
             if(node.assigning_op.op[0] not in right.type[-1].binop):
                 print('Error at line {}, {} is not supported for {}'.format(node.lineno, node.assigning_op.op, right.type[-1]))
