@@ -124,18 +124,18 @@ class Visitor(NodeVisitor):
 
     def raw_type_unary(self, node, op, val):
         if op not in val.type[-1].unaryop:
-            print('Error, {} is not supported for {}'.format(op, val.type[-1]))
+            print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, val.type[-1]))
         return val.type
 
     def raw_type_binary(self, node, op, left, right):
         if left.type != right.type:
             if not( left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
-                print('Error, {} {} {} is not supported'.format(left.type[-1] , op, right.type[-1]))
+                print('Error at line {}, {} {} {} is not supported'.format(node.lineno, left.type[-1] , op, right.type[-1]))
                 return left.type
         if op not in left.type[-1].binop:
-            print('Error, {} is not supported for {}'.format(op, left.type[-1]))
+            print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, left.type[-1]))
         if op not in right.type[-1].binop:
-            print('Error, {} is not supported for {}'.format(op, right.type[-1]))
+            print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, right.type[-1]))
         if op.upper() in ('&&', '||', '>', '<', '>=', '<=', 'IN', '!=', '=='):
             return [bool_type]
         return left.type
@@ -180,13 +180,13 @@ class Visitor(NodeVisitor):
         if node.value is not None:
             if node.mode.type != node.value.type:
                 if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
-                    print('Error, {} is not {}'.format(node.value.repr, node.mode.repr))
+                    print('Error at line {}, {} is not {}'.format(node.lineno, node.value.repr, node.mode.repr))
 
         for identifier in node.id_list:
             identifier.type = node.mode.type
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
-                print('Error, {} already declared'.format(identifier.repr))
+                print('Error at line {}, {} already declared'.format(node.lineno, identifier.repr))
             self.environment.add_local(identifier.repr, node.mode.type)
 
     def visit_Identifier(self, node):
@@ -194,7 +194,7 @@ class Visitor(NodeVisitor):
         node.type = self.environment.lookup(node.repr)
         
         if node.type is None:
-            print('Error, {} used but not declared'.format(node.repr))
+            print('Error at line {}, {} used but not declared'.format(node.lineno, node.repr))
             node.type = [none_type]
             self.environment.add_root(node.name, node.type)
             return
@@ -206,18 +206,18 @@ class Visitor(NodeVisitor):
         self.visit(node.mode)
         self.visit(node.constant_exp)
         if not hasattr(node.constant_exp, 'syn'):
-            print('Error, in synonym definition, {} is not constant'.format(node.constant_exp.repr))
+            print('Error at line {}, in synonym definition, {} is not constant'.format(node.lineno, node.constant_exp.repr))
 
         if node.mode is not None:
             if node.mode.type != node.constant_exp.type:
                 if not (node.mode.type[-1] == pointer_type and node.constant_exp.type == [pointer_type]):
-                    print('Error, {} is not {}'.format(node.constant_exp.repr, node.mode.repr))
+                    print('Error at line {}, {} is not {}'.format(node.lineno, node.constant_exp.repr, node.mode.repr))
             
         for identifier in node.id_list:
             identifier.type = node.constant_exp.type + [syn_type]
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
-                print('Error, {} already exists'.format(identifier.repr))
+                print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
             self.environment.add_root(identifier.repr, identifier.type)
             
     def visit_ModeDefinition(self, node):
@@ -227,7 +227,7 @@ class Visitor(NodeVisitor):
             identifier.type = node.mode.type
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
-                print('Error, {} already exists'.format(identifier.repr))
+                print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
             self.environment.add_local(identifier.repr, identifier.type)
 
     def visit_IntegerMode(self, node):
@@ -252,9 +252,9 @@ class Visitor(NodeVisitor):
         self.visit(node.lower)
         self.visit(node.upper)
         if node.lower.type[-1] != int_type:
-            print('Error, literal range lower bound cannot be {}'.format(lower.type))
+            print('Error at line {}, literal range lower bound cannot be {}'.format(node.lineno, lower.type))
         if node.upper.type[-1] != int_type:
-            print('Error, literal range upper bound cannot be {}'.format(upper.type))
+            print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, upper.type))
 
         node.type = node.lower.type
         node.repr = node.lower.repr + ':' + node.upper.repr
@@ -267,7 +267,7 @@ class Visitor(NodeVisitor):
     def visit_StringMode(self, node):
         self.visit(node.length)
         if node.length.type[-1] != int_type:
-            print('Error, string length cannot be {}'.format(node.length.type[-1]))
+            print('Error at line {}, string length cannot be {}'.format(node.lineno, node.length.type[-1]))
 
         node.type = [char_type, string_type]
         node.repr = 'CHARS [{}]'.format(node.length.repr)
@@ -293,11 +293,11 @@ class Visitor(NodeVisitor):
         self.visit(node.ident)
         self.visit(node.element)
         if node.element.type[-1] != int_type:
-            print('Error, index {} should be int'.format(element.repr))
+            print('Error at line {}, index {} should be int'.format(node.lineno, element.repr))
             
         node.type = node.ident.type[0:-1] # element type
         if len(node.type) == 0:
-            print("Error, {} is not array".format(node.ident.repr))
+            print("Error at line {}, {} is not array".format(node.lineno, node.ident.repr))
         node.repr = '{}[{}]'.format(node.ident.repr, node.element.repr)
        
     def visit_StringSlice(self, node):
@@ -306,10 +306,10 @@ class Visitor(NodeVisitor):
         self.visit(node.right)
         
         if node.left.type[-1] != int_type:
-            print('Error, {} should be int'.format(left.repr))
+            print('Error at line {}, {} should be int'.format(node.lineno, left.repr))
             
         if node.right.type[-1] != int_type:
-            print('Error, {} should be int'.format(right.repr))
+            print('Error at line {}, {} should be int'.format(node.lineno, right.repr))
         
         node.type = node.loc.type
         node.repr = '{}[{}:{}]'.format(node.loc.repr, node.left.repr, node.right.repr)
@@ -320,17 +320,17 @@ class Visitor(NodeVisitor):
         
         if node.loc.type == [char_type, string_type]:
             if len(node.expr_list) != 1:
-                print("Error, String {} must have 1 dimension".format(node.loc.repr))
+                print("Error at line {}, String {} must have 1 dimension".format(node.lineno, node.loc.repr))
                     
         for exp in node.expr_list:
             self.visit(exp)
             if exp.type[-1] != int_type:
-                print('Error, index {} should be int'.format(exp.repr))
+                print('Error at line {}, index {} should be int'.format(node.lineno, exp.repr))
 
         if len(node.expr_list) >= 1:
             node.type = node.loc.type[0:-len(node.expr_list)] # element type
         if len(node.type) == 0:
-            print("Error, {} is not array".format(node.loc.repr))
+            print("Error at line {}, {} is not array".format(node.lineno, node.loc.repr))
         node.repr = '{}[{}]'.format(node.loc.repr, ', '.join([exp.repr for exp in node.expr_list]))
     
     def visit_ArraySlice(self, node):
@@ -339,10 +339,10 @@ class Visitor(NodeVisitor):
         self.visit(node.right)
         
         if node.left.type[-1] != int_type:
-            print('Error, {} should be int'.format(left.repr))
+            print('Error at line {}, {} should be int'.format(node.lineno, left.repr))
             
         if node.right.type[-1] != int_type:
-            print('Error, {} should be int'.format(right.repr))
+            print('Error at line {}, {} should be int'.format(node.lineno, right.repr))
             
         node.type = node.loc.type
         node.repr = '{}[{}:{}]'.format(node.loc.repr, node.left.repr, node.right.repr)
@@ -379,7 +379,7 @@ class Visitor(NodeVisitor):
         for exp in node.exp_list:
             self.visit(exp)
             if exp.type[-1] != int_type:
-                print('Error, index {} should be int'.format(exp.repr))
+                print('Error at line {}, index {} should be int'.format(node.lineno, exp.repr))
 
         if len(node.exp_list) == 1:
             node.type = node.value.type[0:-1] # element type
@@ -394,10 +394,10 @@ class Visitor(NodeVisitor):
         self.visit(node.upper)
         
         if node.lower.type[-1] != int_type:
-            print('Error, {} should be int'.format(lower.repr))
+            print('Error at line {}, {} should be int'.format(node.lineno, lower.repr))
             
         if node.upper.type[-1] != int_type:
-            print('Error, {} should be int'.format(upper.repr))
+            print('Error at line {}, {} should be int'.format(node.lineno, upper.repr))
             
         node.type = node.value.type
         node.repr = '{}[{}:{}]'.format(node.value.repr, node.lower.repr, node.upper.repr)
@@ -411,14 +411,14 @@ class Visitor(NodeVisitor):
         node.type = node.then_expr.type
         
         if not(node.if_expr.type == [bool_type]):
-            print('Error, condition control {} must be of type bool'.format(node.if_expr.repr))
+            print('Error at line {}, condition control {} must be of type bool'.format(node.lineno, node.if_expr.repr))
         
         if (node.elsif_expr != None):
             if not(node.then_expr.type == node.else_expr.type == node.elsif_expr.type):
-                print("Error, expressions {}, {} and {} are not same type".format(node.then_expr.repr, node.else_expr.repr, node.elsif_expr.repr))
+                print("Error at line {}, expressions {}, {} and {} are not same type".format(node.lineno, node.then_expr.repr, node.else_expr.repr, node.elsif_expr.repr))
         else:
             if not(node.then_expr.type == node.else_expr.type):
-                print("Error, expressions {} and {} are not same type".format(node.then_expr.repr, node.else_expr.repr))
+                print("Error at line {}, expressions {} and {} are not same type".format(node.lineno, node.then_expr.repr, node.else_expr.repr))
         node.repr = 'Conditional Expression'
         
     def visit_ElsifExpression(self, node):
@@ -427,11 +427,11 @@ class Visitor(NodeVisitor):
         self.visit(node.elsif_expr)
             
         if not(node.bool_expr.type == [bool_type] ):
-            print("Error, expression {} is not type bool".format(node.bool_expr.repr))
+            print("Error at line {}, expression {} is not type bool".format(node.lineno, node.bool_expr.repr))
         
         if (node.elsif_expr != None):
             if not(node.then_expr.type == node.elsif_expr.type ):
-                print("Error, expressions {} and {} are not same type".format(node.then_expr.repr, node.elsif_expr.repr))
+                print("Error at line {}, expressions {} and {} are not same type".format(node.lineno, node.then_expr.repr, node.elsif_expr.repr))
         
         
         node.type = node.then_expr.type
@@ -458,7 +458,7 @@ class Visitor(NodeVisitor):
         if node.label:
             node.label.repr = node.label.name
             if self.environment.find(node.label.name):
-                print('Error, {} already declared'.format(node.label.repr))
+                print('Error at line {}, {} already declared'.format(node.lineno, node.label.repr))
             self.environment.add_local(node.label.repr, [none_type])
         self.visit(node.action)
         # node.type = node.action.type
@@ -470,14 +470,14 @@ class Visitor(NodeVisitor):
         left = node.location
         right = node.expression
         if hasattr(left, 'syn'):
-            print("Error, can't reassign constant value {}".format(left.repr))
+            print("Error at line {}, can't reassign constant value {}".format(node.lineno, left.repr))
         if left.type != right.type:
             if left.type and right.type:
                 if not(left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
-                    print("Error, can't assign {} to {}".format(right.type, left.type))
+                    print("Error at line {}, can't assign {} to {}".format(node.lineno, right.type, left.type))
         if(len(node.assigning_op.op) == 2):
             if(node.assigning_op.op[0] not in right.type[-1].binop):
-                print('Error, {} is not supported for {}'.format(node.assigning_op.op, right.type[-1]))
+                print('Error at line {}, {} is not supported for {}'.format(node.lineno, node.assigning_op.op, right.type[-1]))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
@@ -531,24 +531,24 @@ class Visitor(NodeVisitor):
         self.visit(node.step)
 
         if node.counter.type[-1] != int_type:
-            print('Error, loop counter {} must be of type int'.format(node.counter.repr))
+            print('Error at line {}, loop counter {} must be of type int'.format(node.lineno, node.counter.repr))
         if node.start.type[-1] != int_type:
-            print('Error, loop start value {} must be of type int'.format(node.start.repr))
+            print('Error at line {}, loop start value {} must be of type int'.format(node.lineno, node.start.repr))
         if node.end.type[-1] != int_type:
-            print('Error, loop end value {} must be of type int'.format(node.end.repr))
+            print('Error at line {}, loop end value {} must be of type int'.format(node.lineno, node.end.repr))
         if node.step and node.step.type[-1] != int_type:
-            print('Error, loop step value {} must be of type int'.format(node.step.repr))
+            print('Error at line {}, loop step value {} must be of type int'.format(node.lineno, node.step.repr))
 
     def visit_RangeEnumeration(self, node):
         self.visit(node.counter)
         self.visit(node.mode)
         if node.mode.type[-1] != int_type:
-            print('Error, range value {} must be of type int'.format(node.mode.repr))
+            print('Error at line {}, range value {} must be of type int'.format(node.lineno, node.mode.repr))
 
     def visit_WhileControl(self, node):
         self.visit(node.bool_exp)
         if node.bool_exp.type[-1] != bool_type:
-            print('Error, while control {} must be of type bool'.format(node.bool_exp.repr))
+            print('Error at line {}, while control {} must be of type bool'.format(node.lineno, node.bool_exp.repr))
 
     def visit_ProcedureCall(self, node):
         self.visit(node.name)
@@ -570,7 +570,7 @@ class Visitor(NodeVisitor):
 
         self.visit(node.procedure_def.result_spec)
         if self.environment.find(node.label.name):
-            print('Error, {} name already used'.format(node.label.name))
+            print('Error at line {}, {} name already used'.format(node.lineno, node.label.name))
         self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else [none_type])
 
         self.visit(node.procedure_def)
