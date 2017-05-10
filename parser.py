@@ -61,7 +61,7 @@ class MyParser(object):
             p[0] = ast.Declaration(p[1], p[2])
         else:
             p[0] = ast.Declaration(p[1], p[2], p[3])
-        p[0].lineno = p[1].lineno
+        p[0].lineno = p[2].lineno
 
 
     def p_initialization(self, p):
@@ -109,9 +109,10 @@ class MyParser(object):
         '''
         if len(p) == 5:
             p[0] = ast.SynonymDefinition(p[1], p[4], p[2])
+            p[0].lineno = p[2].lineno
         else:
             p[0] = ast.SynonymDefinition(p[1], p[3])
-        p[0].lineno = p[1].lineno
+            p[0].lineno = p.lineno(2)
 
 
     def p_constant_expression(self, p):
@@ -141,7 +142,7 @@ class MyParser(object):
         ''' mode_definition : identifier_list EQUALS mode
         '''
         p[0] = ast.ModeDefinition(p[1], p[3])
-        p[0].lineno = p[1].lineno
+        p[0].lineno = p.lineno(2)
 
 
     def p_mode(self, p):
