@@ -7,10 +7,6 @@ class NodeVisitor(object):
         """
         if node:
             method = 'visit_' + node.__class__.__name__
-#            if hasattr(self, method):
-#                print('Specific visitor ' + method)
-#            else:
-#                print('Generic_visit for ' + node.__class__.__name__)
             visitor = getattr(self, method, self.generic_visit)
             return visitor(node)
         else:
@@ -76,34 +72,37 @@ class Environment(object):
     def __init__(self):
         self.stack = []
         self.root = SymbolTable()
+        self.func = SymbolTable()
         self.stack.append(self.root)
-        self.root.update({
-            "int": int_type,
-            "char": char_type,
-            "string": string_type,
-            "bool": bool_type
-        })
+
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
         #print('New scope for {}'.format(enclosure.__class__.__name__))
+
     def pop(self):
         self.stack.pop()
         #print ('End scope')
+
     def peek(self):
         return self.stack[-1]
+
     def scope_level(self):
         return len(self.stack)
+
     def add_local(self, name, value):
         self.peek().add(name, value)
         #print('Name {} with type {} was added to scope {}'.format(name, value, self.scope_level()))
+
     def add_root(self, name, value):
         self.root.add(name, value)
+
     def lookup(self, name):
         for scope in reversed(self.stack):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
         return None
+
     def find(self, name):
         if name in self.stack[-1]:
             return True
@@ -252,9 +251,9 @@ class Visitor(NodeVisitor):
         self.visit(node.lower)
         self.visit(node.upper)
         if node.lower.type[-1] != int_type:
-            print('Error at line {}, literal range lower bound cannot be {}'.format(node.lineno, lower.type))
+            print('Error at line {}, literal range lower bound cannot be {}'.format(node.lineno, node.lower.type))
         if node.upper.type[-1] != int_type:
-            print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, upper.type))
+            print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, node.upper.type))
 
         node.type = node.lower.type
         node.repr = node.lower.repr + ':' + node.upper.repr
@@ -287,33 +286,6 @@ class Visitor(NodeVisitor):
         self.visit(node.loc)
         node.type = node.loc.type[0:-1]
         node.repr = node.loc.repr + '->'
-
-    """
-    def visit_StringElement(self, node):
-        self.visit(node.ident)
-        self.visit(node.element)
-        if node.element.type[-1] != int_type:
-            print('Error at line {}, index {} should be int'.format(node.lineno, element.repr))
-            
-        node.type = node.ident.type[0:-1] # element type
-        if len(node.type) == 0:
-            print("Error at line {}, {} is not array".format(node.lineno, node.ident.repr))
-        node.repr = '{}[{}]'.format(node.ident.repr, node.element.repr)
-       
-    def visit_StringSlice(self, node):
-        self.visit(node.loc)
-        self.visit(node.left)
-        self.visit(node.right)
-        
-        if node.left.type[-1] != int_type:
-            print('Error at line {}, {} should be int'.format(node.lineno, left.repr))
-            
-        if node.right.type[-1] != int_type:
-            print('Error at line {}, {} should be int'.format(node.lineno, right.repr))
-        
-        node.type = node.loc.type
-        node.repr = '{}[{}:{}]'.format(node.loc.repr, node.left.repr, node.right.repr)
-    """
     
     def visit_ArrayElement(self, node):
         self.visit(node.loc)
@@ -552,12 +524,13 @@ class Visitor(NodeVisitor):
 
     def visit_ProcedureCall(self, node):
         self.visit(node.name)
+
         for param in node.param_list: 
             self.visit(param)
             
         node.type = node.name.type
         node.repr = node.name.repr.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
-        ## ajustar tipo e checar parametros
+        ## checar parametros
 
     def visit_BuiltInCall(self, node):
 
