@@ -1,10 +1,9 @@
 class VirtualMachine(object):
   
-  
-  def __init__(self,code,offset, scopes, string_list):
+  def __init__(self, code, scopes, string_list):
     self.sp = 0
     self.pc = 0
-    self.M = []*offset
+    self.M = []
     self.D = [None]*scopes
     self.H = string_list
     self.label = [0]
@@ -286,18 +285,19 @@ class VirtualMachine(object):
     
   
   
-  def eval_alc(self,inst):
+  def eval_alc(self, inst):
     '''
     (’alc’, n)     # Allocate memory
                       sp=sp+n
     '''
+    self.M = [0] * n
     n = inst[1]
     
     self.sp += n
     self.pc += 1
   
   
-  def eval_dlc(self,inst):
+  def eval_dlc(self, inst):
     '''
     (’dlc’, n)     # Deallocate memory
                       sp=sp-n
