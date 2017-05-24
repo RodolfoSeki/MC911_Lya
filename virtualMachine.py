@@ -288,18 +288,19 @@ class VirtualMachine(object):
     
   
   
-  def eval_alc(self,inst):
+  def eval_alc(self, inst):
     '''
     ("alc", n)     # Allocate memory
                       sp=sp+n
     '''
+    self.M = [0] * n
     n = inst[1]
     
     self.sp += n
     self.pc += 1
   
   
-  def eval_dlc(self,inst):
+  def eval_dlc(self, inst):
     '''
     ("dlc", n)     # Deallocate memory
                       sp=sp-n
