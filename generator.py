@@ -26,48 +26,48 @@ class NodeGenerator(object):
                 node.syn = child.syn
  
 
-class Generator(NodeVisitor):
+class Generator(NodeGenerator):
 
     def __init__(self):
         self.code = []
         self.H = []
 
     def generate_Program(self, node):
-		self.code.append(('stp',))	
-		if node.offset > 0:
-			self.code.append(('alc', node.offset))	
+        self.code.append(('stp',))      
+        if node.offset > 0:
+            self.code.append(('alc', node.offset))      
 
-			# Generate all of the statements
-			for stmt in node.stmt_list: 
-				self.generate(stmt)
+            # Generate all of the statements
+            for stmt in node.stmt_list: 
+                self.generate(stmt)
 
-		if node.offset > 0:
-			self.code.append(('dlc', node.offset))	
-		
-		self.code.append(('end',))
+        if node.offset > 0:
+            self.code.append(('dlc', node.offset))      
+        
+        self.code.append(('end',))
 
     def generate_IntegerLiteral(self, node):
-		self.code.append(('ldc', node.const))	
+        self.code.append(('ldc', node.const))   
 
     def generate_BooleanLiteral(self, node):
-		if node.val.lower() == 'true':
-			self.code.append(('ldc', 1))	
-		else:
-			self.code.append(('ldc', 0))	
+        if node.val.lower() == 'true':
+            self.code.append(('ldc', 1))        
+        else:
+            self.code.append(('ldc', 0))        
 
     def generate_CharacterLiteral(self, node):
-		self.code.append(('ldc', node.val))	
+        self.code.append(('ldc', node.val))     
 
     def generate_CharacterStringLiteral(self, node):
-		self.code.append(('ldc', len(self.H)))	
-		self.H.append(node.val)
-		
-		 
-	
+        self.code.append(('ldc', len(self.H)))  
+        self.H.append(node.val)
+                
+                 
+        
 
 
 
-	
+        
     def raw_type_unary(self, node, op, val):
         if op not in val.type[-1].unaryop:
             print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, val.type[-1]))

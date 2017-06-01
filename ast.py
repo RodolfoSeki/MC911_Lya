@@ -26,11 +26,11 @@ class Node(object):
 
     def showDecorated(self, buf=sys.stdout, offset=0):
         buf.write(' '*offset)
-        buf.write(type(self).__name__)
+        buf.write(ttoRed(type(self).__name__))
         buf.write(': ' + ', '.join(['{}={}'.format(k, getattr(self, k)) for k in self.attr_names]))
         if len(self.attr_names) < 1:
             try:
-                buf.write('   ' + toRed('type=') + str(getattr(self, 'type')) + ' "' + toGreen(getattr(self, 'repr')) + '"\n')
+                buf.write('   ' + 'type=' + str(getattr(self, 'type')) + ' "' + toGreen(getattr(self, 'repr')) + '"\n')
             except AttributeError:
                 buf.write('\n')
         else:

@@ -22,6 +22,10 @@ class NodeVisitor(object):
             self.visit(child)
             if hasattr(child, 'type'):
                 node.type = child.type
+            if hasattr(child, 'offset'):
+                node.offset = child.offset
+            if hasattr(child, 'size'):
+                node.size = child.size
             if hasattr(child, 'repr'):
                 node.repr = child.repr
             else:
@@ -29,23 +33,6 @@ class NodeVisitor(object):
             if hasattr(child, 'syn'):
                 node.syn = child.syn
 
-class SymbolTable(dict):
-    """
-    Class representing a symbol table. It should
-    provide functionality for adding and looking
-    up nodes associated with identifiers.
-    """
-    def __init__(self, decl=None):
-        super().__init__()
-        self.decl = decl
-    def add(self, name, value):
-        self[name] = value
-    def lookup(self, name):
-        return self.get(name, None)
-    def return_type(self):
-        if self.decl:
-            return self.decl.mode
-        return None
 
 class Type(object):
     def __init__(self, type, unaryop, binop):
@@ -68,22 +55,30 @@ none_type = Type("none", [], [])
 array_type = Type("array", [], ['==', '!='])
 syn_type = Type("syn", [], [])
 
-class Scope(object):
-    def __init__(self):
-        self.variables = SymbolTable()
+class SymbolTable(dict):
+    """
+    Class representing a symbol table. It should
+    provide functionality for adding and looking
+    up nodes associated with identifiers.
+    """
+    def __init__(self, decl=None):
+        super().__init__()
+        self.decl = decl
         self.offset = 0
-
-    def addVariable(self, name, value):
-        self.variables.add(name, value)
-        self.offset += 1
-
+    def add(self, name, value):
+        self[name] = value
+    def lookup(self, name):
+        return self.get(name, None)
+    def return_type(self):
+        if self.decl:
+            return self.decl.mode
+        return None
 
 
 class Environment(object):
     def __init__(self):
         self.stack = []
         self.root = SymbolTable()
-        #self.func = SymbolTable()
         self.stack.append(self.root)
 
     def push(self, enclosure):
@@ -131,6 +126,7 @@ class Visitor(NodeVisitor):
     """
     def __init__(self):
         self.environment = Environment()
+        self.labelid = 1
 
     def raw_type_unary(self, node, op, val):
         if op not in val.type[-1].unaryop:
@@ -181,8 +177,11 @@ class Visitor(NodeVisitor):
         node.environment = self.environment
         node.symtab = self.environment.peek()
         # Visit all of the statements
+        node.offset = 0
+        node.scope = self.environment.scope_level()
         for stmt in node.stmt_list: 
             self.visit(stmt)
+            node.offset += stmt.offset if hasattr(stmt, 'offset') else 0
 
     def visit_Declaration(self, node):
         self.visit(node.mode)
@@ -192,7 +191,9 @@ class Visitor(NodeVisitor):
                 if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
                     print('Error at line {}, {} is not {}'.format(node.lineno, node.value.repr, node.mode.repr))
 
+        node.offset = node.mode.size
         for identifier in node.id_list:
+            node.offset += node.mode.size
             identifier.type = node.mode.type
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
@@ -243,20 +244,26 @@ class Visitor(NodeVisitor):
     def visit_IntegerMode(self, node):
         node.type = [int_type]
         node.repr = 'INT'
+        node.size = 1
 
     def visit_BooleanMode(self, node):
         node.type = [bool_type]
         node.repr = 'BOOL'
+        node.size = 1
 
     def visit_CharacterMode(self, node):
         node.type = [char_type]
         node.repr = 'CHAR'
+        node.size = 1
 
     def visit_DiscreteRangeMode(self, node):
         self.visit(node.name)
         self.visit(node.literal_range)
         node.type = node.name.type
         node.repr = node.name.repr + '(' + node.literal_range.repr + ')'
+        node.size = 1
+        node.lower = node.literal_range.lower
+        node.upper = node.literal_range.upper
 
     def visit_LiteralRange(self, node):
         self.visit(node.lower)
@@ -266,19 +273,23 @@ class Visitor(NodeVisitor):
         if node.upper.type[-1] != int_type:
             print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, node.upper.type))
 
+        node.size = int(node.upper) - int(node.lower)
         node.type = node.lower.type
         node.repr = node.lower.repr + ':' + node.upper.repr
+        
 
     def visit_ReferenceMode(self, node):
         self.visit(node.mode)
         node.type = node.mode.type + [pointer_type]
         node.repr = "REF " + node.mode.repr
+        node.size = 1
         
     def visit_StringMode(self, node):
         self.visit(node.length)
         if node.length.type[-1] != int_type:
             print('Error at line {}, string length cannot be {}'.format(node.lineno, node.length.type[-1]))
 
+        node.size = node.length.const
         node.type = [char_type, string_type]
         node.repr = 'CHARS [{}]'.format(node.length.repr)
 
@@ -286,10 +297,12 @@ class Visitor(NodeVisitor):
         self.visit(node.mode)
         node.type = []
         node.type += node.mode.type
-        
+        node.size = node.mode.size
+
         for index_mode in node.index_mode_list:
             self.visit(index_mode)
-            node.type +=  [array_type]
+            node.type += [array_type]
+            node.size *= node.size
         
         node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
 
@@ -334,7 +347,7 @@ class Visitor(NodeVisitor):
     def visit_IntegerLiteral(self, node):
         node.type = [int_type]
         node.syn = True
-        node.repr = node.const
+        node.repr = str(node.const)
 
     def visit_BooleanLiteral(self, node):
         node.type = [bool_type]
@@ -464,49 +477,41 @@ class Visitor(NodeVisitor):
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
 
-    def visit_ThenClause(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
-        for stmt in node.action_statement_list: 
-            self.visit(stmt)
-        self.environment.pop()
-    
+    def visit_IfAction(self, node):
+        node.next = self.label
+        self.label += 1
+        for child in node.children():
+            self.visit(child)
+        node.exit = self.label
+        self.label += 1
+
     def visit_ElseClause(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
+        node.next = self.label
+        self.label += 1
         if node.else_type == 'else':
             for stmt in node.bool_or_statement_list: 
                 self.visit(stmt)
         else:
             self.visit(node.then_exp)
             self.visit(node.else_exp)
-            
-        self.environment.pop()
+        node.exit = self.label
 
     def visit_DoAction(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
+
+        self.start = self.label
+        self.label += 1
 
         self.visit(node.ctrl_part)
-
         for stmt in node.action_statement_list: 
             self.visit(stmt)
-            
-        self.environment.pop()
 
-    def visit_ControlPart(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
+        self.end = self.label
+        self.label += 1
 
-        self.visit(node.ctrl1)
-        self.visit(node.ctrl2)
-
-        self.environment.pop()
-
+    ## TODO: def visit_ForControl(self, node):
+    
+    ## TODO: def visit_WhileControl(self, node):
+        
     def visit_StepEnumeration(self, node):
         self.visit(node.counter)
         self.visit(node.start)
@@ -558,6 +563,7 @@ class Visitor(NodeVisitor):
         self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else [none_type])
 
         self.visit(node.procedure_def)
+        node.offset = node.procedure_def.offset
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
 
     def visit_ProcedureDefinition(self, node):
