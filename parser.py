@@ -212,7 +212,7 @@ class MyParser(object):
         p[0] = p[1]
 
     def p_string_mode(self, p):
-        ''' string_mode : CHARS LBRACKET literal RBRACKET
+        ''' string_mode : CHARS LBRACKET integer_literal RBRACKET
         '''
         p[0] = ast.StringMode(p[3])
         p[0].lineno = p.lineno(1)
