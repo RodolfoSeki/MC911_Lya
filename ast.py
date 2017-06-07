@@ -4,6 +4,7 @@ def toRed(prt): return("\033[91m{}\033[00m" .format(prt))
 def toGreen(prt): return("\033[92m{}\033[00m" .format(prt))
 def toYellow(prt): return("\033[93m{}\033[00m" .format(prt))
 def toCyan(prt): return("\033[96m{}\033[00m" .format(prt))
+def toBold(prt): return("'\033[1m{}\033[00m" .format(prt))
 def toLightGray(prt): return("\033[97m{}\033[00m" .format(prt))
 
 class Node(object):
@@ -26,7 +27,7 @@ class Node(object):
 
     def showDecorated(self, buf=sys.stdout, offset=0):
         buf.write(' '*offset)
-        buf.write(ttoRed(type(self).__name__))
+        buf.write(toBold(type(self).__name__))
         buf.write(': ' + ', '.join(['{}={}'.format(k, getattr(self, k)) for k in self.attr_names]))
         if len(self.attr_names) < 1:
             try:

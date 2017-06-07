@@ -1,5 +1,5 @@
 class VirtualMachine(object):
-  def __init__(self,code,offset, scopes=100, string_list):
+  def __init__(self,code,offset, scopes=100, string_list = []):
     self.sp = 0
     self.pc = 0
     #self.M = [0]*offset

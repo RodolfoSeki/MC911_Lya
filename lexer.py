@@ -111,7 +111,7 @@ class MyLexer(object):
     # Note addition of self parameter since we're in a class
     def t_ICONST(self,t):
         r'\d+'
-        return int(t)
+        return t
 
     def t_CCONST(self,t):
         r'\'[^\\]\'|\'\^\(\d+\)\'|\'\\[nt\\]\''

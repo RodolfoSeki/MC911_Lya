@@ -1,3 +1,43 @@
+from visitor import SymbolTable
+
+class memEnvironment(object):
+    def __init__(self):
+        self.stack = []
+
+        self.root = SymbolTable()
+        self.stack.append(self.root)
+
+    def push(self, enclosure):
+        self.stack.append(SymbolTable(decl=enclosure))
+
+    def pop(self):
+        self.stack.pop()
+
+    def peek(self):
+        return self.stack[-1]
+
+    def scope_level(self):
+        return len(self.stack)
+
+    def add_local(self, name, value):
+        self.peek().add(name, value)
+
+    def add_root(self, name, value):
+        self.root.add(name, value)
+
+    def lookup(self, name):
+        for i, scope in enumerate(reversed(self.stack)):
+            hit = scope.lookup(name)
+            if hit is not None:
+                return i, hit
+        return None
+
+    def find(self, name):
+        if name in self.stack[-1]:
+            return True
+        else:
+            return False
+
 class NodeGenerator(object):
 
     def generate(self, node):
@@ -31,8 +71,10 @@ class Generator(NodeGenerator):
     def __init__(self):
         self.code = []
         self.H = []
+        self.environment = memEnvironment()
 
     def generate_Program(self, node):
+        self.environment.push(node)
         self.code.append(('stp',))      
         if node.offset > 0:
             self.code.append(('alc', node.offset))      
@@ -45,29 +87,62 @@ class Generator(NodeGenerator):
             self.code.append(('dlc', node.offset))      
         
         self.code.append(('end',))
+        self.environment.pop()
+
+    def generate_Declaration(self, node):
+        #TODO: reference type variable
+
+        for identifier in node.id_list:
+            self.environment.add_local(identifier.repr, identifier.offset)
+        if node.value is not None:
+            if isinstance(node.value, str):
+                self.generate(node.value)
+                for identifier in node.id_list:
+                    self.code.append(('sts', len(self.H)))      
+            else:
+                for identifier in node.id_list:
+                    self.generate(node.value)
+                    self.code.append(tuple('stv', *self.environment.lookup(identifier)))
+
 
     def generate_IntegerLiteral(self, node):
         self.code.append(('ldc', node.const))   
 
     def generate_BooleanLiteral(self, node):
         if node.val.lower() == 'true':
-            self.code.append(('ldc', 1))        
+            self.code.append(('ldc', True))        
         else:
-            self.code.append(('ldc', 0))        
+            self.code.append(('ldc', False))        
 
     def generate_CharacterLiteral(self, node):
         self.code.append(('ldc', node.val))     
 
+    # TODO: check
     def generate_CharacterStringLiteral(self, node):
-        self.code.append(('ldc', len(self.H)))  
+        #self.code.append(('ldc', len(self.H)))  
         self.H.append(node.val)
+
+    # TODO: 3 types of print
                 
-                 
-        
+
+    '''
+    def generate_ProcedureCall(self, node):
+        if node.offset > 0:
+            self.code.append(('alc', node.offset))      
+
+            # load parameters
+            for param, loc in reversed(node.parameter_types): 
+                if loc or array_type in param:
+                    self.code.append(('ldr', node.))      
+                else:
+                    self.code.append(('ldc', node.))      
+            
+        self.code.append(('enf', node.))      
+    '''
 
 
 
-        
+'''
     def raw_type_unary(self, node, op, val):
         if op not in val.type[-1].unaryop:
             print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, val.type[-1]))
@@ -121,20 +196,6 @@ class Generator(NodeGenerator):
         for stmt in node.stmt_list: 
             self.generate(stmt)
 
-    def generate_Declaration(self, node):
-        self.generate(node.mode)
-        self.generate(node.value)
-        if node.value is not None:
-            if node.mode.type != node.value.type:
-                if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
-                    print('Error at line {}, {} is not {}'.format(node.lineno, node.value.repr, node.mode.repr))
-
-        for identifier in node.id_list:
-            identifier.type = node.mode.type
-            identifier.repr = identifier.name
-            if self.environment.find(identifier.repr):
-                print('Error at line {}, {} already declared'.format(node.lineno, identifier.repr))
-            self.environment.add_local(identifier.repr, node.mode.type)
 
     def generate_Identifier(self, node):
         node.repr = node.name
@@ -535,5 +596,4 @@ class Generator(NodeGenerator):
             node.repr = 'LOC ' + node.mode.repr
         else:
             node.repr = node.mode.repr
-       
-        
+''' 

@@ -1,3 +1,99 @@
+class Type(object):
+    def __init__(self, type, unaryop, binop):
+        self.type = type
+        self.unaryop = unaryop
+        self.binop = binop
+
+    def __repr__(self):
+        return self.type
+
+    def __str__(self):
+        return self.type
+
+int_type = Type("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '<', '>=', '<', '<='])
+bool_type = Type("bool", ['!'], ['==', '!='])
+char_type = Type("char", [], [])
+string_type = Type("string", [], ['+', '==', '!=', '&'])
+pointer_type = Type("addr", [], ['==', '!='])
+none_type = Type("none", [], [])
+array_type = Type("array", [], ['==', '!='])
+syn_type = Type("syn", [], [])
+
+class SymbolTable(dict):
+    """
+    Class representing a symbol table. It should
+    provide functionality for adding and looking
+    up nodes associated with identifiers.
+    """
+    def __init__(self, decl=None):
+        super().__init__()
+        self.decl = decl
+    def add(self, name, value):
+        self[name] = value
+    def lookup(self, name):
+        return self.get(name, None)
+    def return_type(self):
+        if self.decl:
+            return self.decl.mode
+        return None
+
+class Environment(object):
+    def __init__(self):
+        self.stack = []
+        self.function_stack = []
+
+        self.root = SymbolTable()
+        self.stack.append(self.root)
+
+        self.function = SymbolTable()
+        self.function_stack.append(self.function)
+
+    def push(self, enclosure):
+        self.stack.append(SymbolTable(decl=enclosure))
+        self.function_stack.append(SymbolTable(decl=enclosure))
+        #print('New scope for {}'.format(enclosure.__class__.__name__))
+
+    def pop(self):
+        self.stack.pop()
+        self.function_stack.pop()
+        #print ('End scope')
+
+    def peek(self):
+        return self.stack[-1]
+
+    def scope_level(self):
+        return len(self.stack)
+
+    def add_local(self, name, value):
+        self.peek().add(name, value)
+        #print('Name {} with type {} was added to scope {}'.format(name, value, self.scope_level()))
+
+    def add_root(self, name, value):
+        self.root.add(name, value)
+
+    def add_function(self, name, value):
+        self.function_stack[-1].add(name, value)
+
+    def lookup_function(self, name):
+        for scope in reversed(self.function_stack):
+            hit = scope.lookup(name)
+            if hit is not None:
+                return hit
+        return None
+
+    def lookup(self, name):
+        for scope in reversed(self.stack):
+            hit = scope.lookup(name)
+            if hit is not None:
+                return hit
+        return None
+
+    def find(self, name):
+        if name in self.stack[-1]:
+            return True
+        else:
+            return False
+
 class NodeVisitor(object):
 
     def visit(self,node):
@@ -32,88 +128,6 @@ class NodeVisitor(object):
                 node.repr = node.__class__.__name__
             if hasattr(child, 'syn'):
                 node.syn = child.syn
-
-
-class Type(object):
-    def __init__(self, type, unaryop, binop):
-        self.type = type
-        self.unaryop = unaryop
-        self.binop = binop
-
-    def __repr__(self):
-        return self.type
-
-    def __str__(self):
-        return self.type
-
-int_type = Type("int", ['-'], ['+', '-', '*', '/', '%', '==', '!=', '>', '>=', '<', '>=', '<', '<='])
-bool_type = Type("bool", ['!'], ['==', '!='])
-char_type = Type("char", [], [])
-string_type = Type("string", [], ['+', '==', '!=', '&'])
-pointer_type = Type("addr", [], ['==', '!='])
-none_type = Type("none", [], [])
-array_type = Type("array", [], ['==', '!='])
-syn_type = Type("syn", [], [])
-
-class SymbolTable(dict):
-    """
-    Class representing a symbol table. It should
-    provide functionality for adding and looking
-    up nodes associated with identifiers.
-    """
-    def __init__(self, decl=None):
-        super().__init__()
-        self.decl = decl
-        self.offset = 0
-    def add(self, name, value):
-        self[name] = value
-    def lookup(self, name):
-        return self.get(name, None)
-    def return_type(self):
-        if self.decl:
-            return self.decl.mode
-        return None
-
-
-class Environment(object):
-    def __init__(self):
-        self.stack = []
-        self.root = SymbolTable()
-        self.stack.append(self.root)
-
-    def push(self, enclosure):
-        self.stack.append(SymbolTable(decl=enclosure))
-        #print('New scope for {}'.format(enclosure.__class__.__name__))
-
-    def pop(self):
-        self.stack.pop()
-        #print ('End scope')
-
-    def peek(self):
-        return self.stack[-1]
-
-    def scope_level(self):
-        return len(self.stack)
-
-    def add_local(self, name, value):
-        self.peek().add(name, value)
-        #print('Name {} with type {} was added to scope {}'.format(name, value, self.scope_level()))
-
-    def add_root(self, name, value):
-        self.root.add(name, value)
-
-    def lookup(self, name):
-        for scope in reversed(self.stack):
-            hit = scope.lookup(name)
-            if hit is not None:
-                return hit
-        return None
-
-    def find(self, name):
-        if name in self.stack[-1]:
-            return True
-        else:
-            return False
 
     
 class Visitor(NodeVisitor):
@@ -191,9 +205,11 @@ class Visitor(NodeVisitor):
                 if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
                     print('Error at line {}, {} is not {}'.format(node.lineno, node.value.repr, node.mode.repr))
 
-        node.offset = node.mode.size
+        node.offset = 0
         for identifier in node.id_list:
             node.offset += node.mode.size
+            identifier.offset = node.offset
+
             identifier.type = node.mode.type
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
@@ -540,13 +556,17 @@ class Visitor(NodeVisitor):
 
     def visit_ProcedureCall(self, node):
         self.visit(node.name)
+        node.parameter_types, node.result_spec = node.environment.lookup_function(node.name)
+        if len(node.param_list) != len(node.parameter_types):
+            print('Error at line {}, function {} expects {} arguments'.format(node.lineno, node.name, len(node.parameter_types)))
 
-        for param in node.param_list: 
+        for param, param_type in zip(node.param_list, node.parameter_types):
             self.visit(param)
+            if param.type != param_type[0]:
+                print('Error at line {}, argument {} type {} expected to be {}'.format(node.lineno, param.repr, param.type, param_type[0]))
             
         node.type = node.name.type
-        node.repr = node.name.repr.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
-        ## checar parametros
+        node.repr = node.name.repr + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
 
     def visit_BuiltInCall(self, node):
 
@@ -563,19 +583,27 @@ class Visitor(NodeVisitor):
         self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else [none_type])
 
         self.visit(node.procedure_def)
+
+        self.environment.add_function(node.label.name, (node.procedure_def.param_types, node.procedure_def.result_spec))
+
         node.offset = node.procedure_def.offset
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
 
     def visit_ProcedureDefinition(self, node):
         self.environment.push(node)
         node.environment = self.environment
-        node.symtab = self.environment.peek()
+
+        # tuples with type and boolean Loc
+        node.param_types = []
+        node.offset = 0
 
         for param in node.formal_parameter_list:
             self.visit(param)
+            node.param_types += [(param.type, param.loc)] * len(param.id_list)
 
         for stmt in node.stmt_list:
             self.visit(stmt)
+            node.offset += stmt.offset
 
         self.environment.pop()
 
@@ -585,8 +613,11 @@ class Visitor(NodeVisitor):
 
     def visit_FormalParameter(self, node):
         self.visit(node.param_spec)
+        node.type = node.param_spec.type
+        node.loc = node.param_spec.loc
         for identifier in node.id_list:
-            self.environment.add_local(identifier.name, node.param_spec.type)
+            self.environment.add_local(identifier.name, node.type)
+        
         node.repr = ', '.join([identifier.name for identifier in node.id_list]) + ' ' + node.param_spec.repr
 
     def visit_ParameterSpec(self, node):
@@ -594,15 +625,19 @@ class Visitor(NodeVisitor):
         node.type = node.mode.type
         if node.loc:
             node.repr = 'LOC ' + node.mode.repr
+            node.loc = True
         else:
             node.repr = node.mode.repr
+            node.loc = False
 
     def visit_ResultSpec(self, node):
         self.visit(node.mode)
         node.type = node.mode.type
         if node.loc:
             node.repr = 'LOC ' + node.mode.repr
+            node.loc = True
         else:
             node.repr = node.mode.repr
+            node.loc = False
        
         

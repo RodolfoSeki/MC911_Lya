@@ -345,7 +345,7 @@ class MyParser(object):
     def p_integer_literal(self, p):
         ''' integer_literal : ICONST
         '''
-        p[0] = ast.IntegerLiteral(p[1])
+        p[0] = ast.IntegerLiteral(int(p[1]))
         p[0].lineno = p.lineno(1)
 
 

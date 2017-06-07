@@ -19,12 +19,12 @@ visitor = Visitor()
 visitor.visit(ast)
 print (ast.showDecorated())
 
-'''
 generator = Generator()
 strings, code = generator.generate(ast)
 
 print(strings)
 print(code)
+'''
 vm = VirtualMachine(code, 10000, 100, strings)
 vm.run()
 '''
