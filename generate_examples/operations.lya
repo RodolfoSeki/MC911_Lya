@@ -1,0 +1,2 @@
+dcl x, y int = 2;
+y = x + 2;

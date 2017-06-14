@@ -1,2 +1,7 @@
 // test declaration of variables
 dcl x, y, z int = 30;
+// test declaration of string constant
+dcl s, t chars[8] = "Cachorro";
+// test declaration of reference
+dcl k ref int = -> x;
+

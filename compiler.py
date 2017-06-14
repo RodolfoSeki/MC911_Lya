@@ -20,11 +20,10 @@ visitor.visit(ast)
 print (ast.showDecorated())
 
 generator = Generator()
-strings, code = generator.generate(ast)
+generator.generate(ast)
 
-print(strings)
-print(code)
-'''
-vm = VirtualMachine(code, 10000, 100, strings)
+print(generator.H)
+print(generator.code)
+
+vm = VirtualMachine(generator.code, 10000, 100, generator.H)
 vm.run()
-'''
