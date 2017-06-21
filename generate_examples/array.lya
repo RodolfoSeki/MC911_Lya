@@ -1,0 +1,4 @@
+dcl a, b array[1:10] int;
+dcl i int = 2, j int = 5;
+a[i] = j;
+a[j] = b [i];

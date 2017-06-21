@@ -17,7 +17,6 @@ class memEnvironment(object):
         return len(self.stack)
 
     def add_local(self, name, value):
-        print(self.stack)
         self.peek().add(name, value)
 
     def add_root(self, name, value):
@@ -144,7 +143,7 @@ class Generator(NodeGenerator):
 
 
 
-'''
+    '''
     def raw_type_unary(self, node, op, val):
         if op not in val.type[-1].unaryop:
             print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, val.type[-1]))
@@ -163,7 +162,7 @@ class Generator(NodeGenerator):
             return [bool_type]
         return left.type
 
-'''
+    ''' 
     def generateBinaryExp(self, node, left, right, op):
         self.generate(left)
         self.generate(right)
@@ -171,13 +170,13 @@ class Generator(NodeGenerator):
             return 
         if op == '+':
             self.code.append(('add',))     
-        elif op == '-'
+        elif op == '-':
             self.code.append(('sub',))     
-        elif op == '*'
+        elif op == '*':
             self.code.append(('mul',))     
-        elif op == '/'
+        elif op == '/':
             self.code.append(('div',))     
-        elif op == '%'
+        elif op == '%':
             self.code.append(('mod',))     
         #TODO Logical operators
         #TODO membership operators
@@ -193,11 +192,12 @@ class Generator(NodeGenerator):
             self.code.append(('not',))     
 
     def generate_Identifier(self, node):
-        disp, off = self.environment.lookup(identifier.repr)
+        disp, off = self.environment.lookup(node.repr)
         self.code.append(('ldv', disp, off))
 
         
-'''
+    '''
+
     def generate_SynonymDefinition(self, node):
         self.generate(node.mode)
         self.generate(node.constant_exp)
@@ -385,26 +385,20 @@ class Generator(NodeGenerator):
         
         node.type = node.then_expr.type
         node.repr = 'Elsif Expression'
-'''
-    def generate_Operand0(self, node):
-        self.generateBinaryExp(node, node.operand0, node.operand1, node.operator.op)
+    '''
 
-    def generate_Operand1(self, node):
-        self.generateBinaryExp(node, node.operand1, node.operand2, node.operator.op)
-
-    def generate_Operand2(self, node):
-        self.generateBinaryExp(node, node.operand2, node.operand3, node.operator.op)
-
-    def generate_Operand3(self, node):
-        self.generateUnaryExp(node, node.operator.op, node.operand_or_literal)
-
-
-'''
     def generate_Location(self, node):
         if node.loc_type.__class__.__name__ == 'Identifier':
-            print('Identifier')
-            self.code.append(('ldv', disp, off))
+            if len(node.loc_type.type) == 1: # Primitive Type
+                disp, off = self.environment.lookup(node.loc_type.repr)
+                self.code.append(('ldv', disp, off))
+            else:
+                disp, off = self.environment.lookup(node.loc_type.repr)
+                self.code.append(('ldr', disp, off))
+        else:
+            self.generate(node.loc_type)
 
+    '''
 
     def generate_ReferencedLocation(self, node):
         self.generate(node.location)
@@ -414,6 +408,7 @@ class Generator(NodeGenerator):
         self.code.append(('ldr', node.const))   
 
         node.repr = '->' + node.location.repr
+
     def generate_ActionStatement(self, node):
         if node.label:
             node.label.repr = node.label.name
@@ -423,7 +418,8 @@ class Generator(NodeGenerator):
         self.generate(node.action)
         # node.type = node.action.type
         node.repr = node.action.repr
-'''
+    '''
+
     def generate_AssignmentAction(self, node):
         self.generate(node.expression)
         self.generate(node.location)
@@ -440,8 +436,8 @@ class Generator(NodeGenerator):
                 print('Error at line {}, {} is not supported for {}'.format(node.lineno, node.assigning_op.op, right.type[-1]))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
-'''
 
+    '''
     def generate_ThenClause(self, node):
         self.environment.push(node)
         node.environment = self.environment
@@ -576,4 +572,4 @@ class Generator(NodeGenerator):
             node.repr = 'LOC ' + node.mode.repr
         else:
             node.repr = node.mode.repr
-''' 
+    ''' 

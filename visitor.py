@@ -124,8 +124,8 @@ class NodeVisitor(object):
                 node.size = child.size
             if hasattr(child, 'repr'):
                 node.repr = child.repr
-            else:
-                node.repr = node.__class__.__name__
+            #else:
+            #    node.repr = node.__class__.__name__
             if hasattr(child, 'syn'):
                 node.syn = child.syn
 
@@ -196,15 +196,15 @@ class Visitor(NodeVisitor):
         node.scope = self.environment.scope_level()
         for stmt in node.stmt_list: 
             self.visit(stmt)
-            #self.offset[-1] += stmt.offset if hasattr(stmt, 'offset') else 0
         node.offset = self.offset[-1]
 
     def visit_Declaration(self, node):
         self.visit(node.mode)
         self.visit(node.value)
+        print(node.mode.size)
         if node.value is not None:
             if node.mode.type != node.value.type:
-                if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
+                if not(node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
                     print('Error at line {}, {} is not {}'.format(node.lineno, node.value.repr, node.mode.repr))
 
         for identifier in node.id_list:
@@ -258,6 +258,12 @@ class Visitor(NodeVisitor):
                 print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
             self.environment.add_local(identifier.repr, identifier.type)
 
+    def visit_Mode(self, node):
+            self.visit(node.mode)
+            node.type = node.mode.type
+            node.size = node.mode.size
+            node.repr = node.mode.repr
+
     def visit_IntegerMode(self, node):
         node.type = [int_type]
         node.repr = 'INT'
@@ -290,7 +296,7 @@ class Visitor(NodeVisitor):
         if node.upper.type[-1] != int_type:
             print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, node.upper.type))
 
-        node.size = int(node.upper) - int(node.lower)
+        node.size = 1 + int(node.upper.repr) - int(node.lower.repr)
         node.type = node.lower.type
         node.repr = node.lower.repr + ':' + node.upper.repr
         
@@ -319,7 +325,7 @@ class Visitor(NodeVisitor):
         for index_mode in node.index_mode_list:
             self.visit(index_mode)
             node.type += [array_type]
-            node.size *= node.size
+            node.size *= index_mode.size
         
         node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
 

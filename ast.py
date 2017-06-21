@@ -30,10 +30,15 @@ class Node(object):
         buf.write(toBold(type(self).__name__))
         buf.write(': ' + ', '.join(['{}={}'.format(k, getattr(self, k)) for k in self.attr_names]))
         if len(self.attr_names) < 1:
-            try:
-                buf.write('   ' + 'type=' + str(getattr(self, 'type')) + ' "' + toGreen(getattr(self, 'repr')) + '"\n')
-            except AttributeError:
-                buf.write('\n')
+            if 'type' in dir(self):
+                buf.write('   ' + 'type=' + str(getattr(self, 'type')))
+            if 'offset' in dir(self):
+                buf.write('   ' + 'offset=' + str(getattr(self, 'offset')))
+            if 'size' in dir(self):
+                buf.write('   ' + 'size=' + str(getattr(self, 'size')))
+            if 'repr' in dir(self):
+                buf.write('   ' + toGreen(getattr(self, 'repr')))
+            buf.write('\n')
         else:
             buf.write('\n')
 
