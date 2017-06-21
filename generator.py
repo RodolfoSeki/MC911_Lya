@@ -193,7 +193,11 @@ class Generator(NodeGenerator):
 
     def generate_Identifier(self, node):
         disp, off = self.environment.lookup(node.repr)
-        self.code.append(('ldv', disp, off))
+        if node.mode.type[-1] in [array_type]:
+             self.code.append(('ldr', disp, off))
+             self.code.append(('lmv', node.mode.size))
+        else:
+            self.code.append(('ldv', disp, off))
 
         
     '''
@@ -278,12 +282,13 @@ class Generator(NodeGenerator):
             node.type +=  [array_type]
         
         node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
-
+    '''
     def generate_DereferencedReference(self, node):
         self.generate(node.loc)
         node.type = node.loc.type[0:-1]
         node.repr = node.loc.repr + '->'
     
+    '''
     def generate_ArrayElement(self, node):
         self.generate(node.loc)
         
@@ -516,14 +521,49 @@ class Generator(NodeGenerator):
         node.type = node.name.type
         node.repr = node.name.repr.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
         ## checar parametros
-
+    '''
     def generate_BuiltInCall(self, node):
-
+        '''
         node.type = [int_type]
         for param in node.param_list: 
             self.generate(param)
         node.repr = node.name.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
+        '''
+        
+        func_name = node.name
+        
+        if func_name == 'print':
+            for param in node.param_list:
+                if param.expr.__class__.__name__ is "PrimitiveValue":
+                    self.generate(param)
+                    if param.type == [char_type, string_type]:
+                        self.code.append(('prc', len(self.H) - 1))
+                    elif param.type == [int_type]:
+                        self.code.append(('prv',0))
+                    elif param.type == [char_type]:
+                        self.code.append(('prv',1))
+                    else:
+                        print("ERROR")
+                        
+                else:
+                    if param.type == [char_type, string_type]:
+                        disp, off = self.environment.lookup(param.repr)
+                        self.code.append(('ldr',disp, off))
+                        self.code.append(('prs', ))
+                    elif param.type == [int_type]:
+                        self.generate(param)
+                        self.code.append(('prv',0))
+                    elif param.type == [char_type]:
+                        self.generate(param)
+                        self.code.append(('prv',1))
+                    else:
+                        disp, off = self.environment.lookup(param.repr)
+                        #TODO fazer load multiple values
+                        
+                        print("ERROR2")
 
+    
+    '''
     def generate_ProcedureStatement(self, node):
 
         self.generate(node.procedure_def.result_spec)
