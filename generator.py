@@ -194,7 +194,6 @@ class Generator(NodeGenerator):
     def generate_Identifier(self, node):
         disp, off = self.environment.lookup(node.repr)
         self.code.append(('ldv', disp, off))
-
         
     '''
 
@@ -386,6 +385,19 @@ class Generator(NodeGenerator):
         node.type = node.then_expr.type
         node.repr = 'Elsif Expression'
     '''
+
+    def generate_Operand0(self, node):
+        self.generateBinaryExp(node, node.operand0, node.operand1, node.operator.op)
+
+    def generate_Operand1(self, node):
+        self.generateBinaryExp(node, node.operand1, node.operand2, node.operator.op)
+
+    def generate_Operand2(self, node):
+        self.generateBinaryExp(node, node.operand2, node.operand3, node.operator.op)
+
+    def generate_Operand3(self, node):
+        self.generateUnaryExp(node, node.operator.op, node.operand_or_literal)
+
 
     def generate_Location(self, node):
         if node.loc_type.__class__.__name__ == 'Identifier':
