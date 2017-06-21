@@ -1,11 +1,8 @@
-from visitor import SymbolTable
+from visitor import *
 
 class memEnvironment(object):
     def __init__(self):
         self.stack = []
-
-        self.root = SymbolTable()
-        self.stack.append(self.root)
 
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
@@ -20,16 +17,17 @@ class memEnvironment(object):
         return len(self.stack)
 
     def add_local(self, name, value):
+        print(self.stack)
         self.peek().add(name, value)
 
     def add_root(self, name, value):
         self.root.add(name, value)
 
     def lookup(self, name):
-        for i, scope in enumerate(reversed(self.stack)):
+        for i, scope in enumerate(reversed(self.stack), 1):
             hit = scope.lookup(name)
             if hit is not None:
-                return i, hit
+                return self.scope_level() - i, hit
         return None
 
     def find(self, name):
@@ -94,15 +92,19 @@ class Generator(NodeGenerator):
 
         for identifier in node.id_list:
             self.environment.add_local(identifier.repr, identifier.offset)
+
         if node.value is not None:
-            if isinstance(node.value, str):
+            if node.mode.type == [char_type, string_type]:
                 self.generate(node.value)
                 for identifier in node.id_list:
-                    self.code.append(('sts', len(self.H)))      
+                    disp, off = self.environment.lookup(identifier.repr)
+                    self.code.append(('ldr', disp, off))
+                    self.code.append(('sts', len(self.H) - 1))      
             else:
                 for identifier in node.id_list:
                     self.generate(node.value)
-                    self.code.append(tuple('stv', *self.environment.lookup(identifier)))
+                    disp, off = self.environment.lookup(identifier.repr)
+                    self.code.append(('stv', disp, off))
 
 
     def generate_IntegerLiteral(self, node):
@@ -120,7 +122,7 @@ class Generator(NodeGenerator):
     # TODO: check
     def generate_CharacterStringLiteral(self, node):
         #self.code.append(('ldc', len(self.H)))  
-        self.H.append(node.val)
+        self.H.append(node.string)
 
     # TODO: 3 types of print
                 
@@ -161,55 +163,41 @@ class Generator(NodeGenerator):
             return [bool_type]
         return left.type
 
+'''
     def generateBinaryExp(self, node, left, right, op):
         self.generate(left)
         self.generate(right)
         if op == None:
-            node.type = left.type if left is not None else right.type
-            node.repr = left.repr if left is not None else right.repr
             return 
+        if op == '+':
+            self.code.append(('add',))     
+        elif op == '-'
+            self.code.append(('sub',))     
+        elif op == '*'
+            self.code.append(('mul',))     
+        elif op == '/'
+            self.code.append(('div',))     
+        elif op == '%'
+            self.code.append(('mod',))     
+        #TODO Logical operators
+        #TODO membership operators
 
-        node.type = self.raw_type_binary(node, op, left, right)
-        
-        if hasattr(left, 'syn') and hasattr(right, 'syn'):
-            node.syn = True
-        node.repr = ' '.join([left.repr, op, right.repr])
-    
     def generateUnaryExp(self, node, op, val):
         self.generate(val)
         if op == None:
-            node.type = val.type
-            node.repr = val.repr
             return 
 
-        node.type = self.raw_type_unary(node, op, val)
-        if hasattr(val, 'syn'):
-            node.syn = True
-        node.repr = ''.join([op, val.repr])
-
-    def generate_Program(self, node):
-        
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
-        # Visit all of the statements
-        for stmt in node.stmt_list: 
-            self.generate(stmt)
-
+        if op == '-':
+            self.code.append(('neg',))     
+        elif op == '!':
+            self.code.append(('not',))     
 
     def generate_Identifier(self, node):
-        node.repr = node.name
-        node.type = self.environment.lookup(node.repr)
+        disp, off = self.environment.lookup(identifier.repr)
+        self.code.append(('ldv', disp, off))
+
         
-        if node.type is None:
-            print('Error at line {}, {} used but not declared'.format(node.lineno, node.repr))
-            node.type = [none_type]
-            self.environment.add_root(node.name, node.type)
-            return
-        if node.type[-1] == syn_type:
-            node.syn = True
-            node.type = node.type[0:-1]
-        
+'''
     def generate_SynonymDefinition(self, node):
         self.generate(node.mode)
         self.generate(node.constant_exp)
@@ -329,29 +317,9 @@ class Generator(NodeGenerator):
         node.repr = '{}[{}:{}]'.format(node.loc.repr, node.left.repr, node.right.repr)
         
 
-    def generate_IntegerLiteral(self, node):
-        node.type = [int_type]
-        node.syn = True
-        node.repr = node.const
-
-    def generate_BooleanLiteral(self, node):
-        node.type = [bool_type]
-        node.repr = node.val
-        node.syn = True
-
-    def generate_CharacterLiteral(self, node):
-        node.type = [char_type]
-        node.repr = "'" + chr(node.val) + "'"
-        node.syn = True
-        
     def generate_EmptyLiteral(self, node):
         node.type = [pointer_type]
         node.repr = node.val
-        node.syn = True
-        
-    def generate_CharacterStringLiteral(self, node):
-        node.type = [char_type, string_type]
-        node.repr = node.string
         node.syn = True
         
     def generate_ValueArrayElement(self, node):
@@ -417,7 +385,7 @@ class Generator(NodeGenerator):
         
         node.type = node.then_expr.type
         node.repr = 'Elsif Expression'
-
+'''
     def generate_Operand0(self, node):
         self.generateBinaryExp(node, node.operand0, node.operand1, node.operator.op)
 
@@ -430,11 +398,22 @@ class Generator(NodeGenerator):
     def generate_Operand3(self, node):
         self.generateUnaryExp(node, node.operator.op, node.operand_or_literal)
 
+
+'''
+    def generate_Location(self, node):
+        if node.loc_type.__class__.__name__ == 'Identifier':
+            print('Identifier')
+            self.code.append(('ldv', disp, off))
+
+
     def generate_ReferencedLocation(self, node):
         self.generate(node.location)
-        node.type = node.location.type + [pointer_type]
-        node.repr = '->' + node.location.repr
+        disp, off = self.environment.lookup(identifier.repr)
+                    self.code.append(('ldr', disp, off))
+                    self.code.append(('sts', len(self.H) - 1))      
+        self.code.append(('ldr', node.const))   
 
+        node.repr = '->' + node.location.repr
     def generate_ActionStatement(self, node):
         if node.label:
             node.label.repr = node.label.name
@@ -444,7 +423,7 @@ class Generator(NodeGenerator):
         self.generate(node.action)
         # node.type = node.action.type
         node.repr = node.action.repr
-
+'''
     def generate_AssignmentAction(self, node):
         self.generate(node.expression)
         self.generate(node.location)
@@ -461,6 +440,7 @@ class Generator(NodeGenerator):
                 print('Error at line {}, {} is not supported for {}'.format(node.lineno, node.assigning_op.op, right.type[-1]))
         #node.type = left.type
         node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
+'''
 
     def generate_ThenClause(self, node):
         self.environment.push(node)

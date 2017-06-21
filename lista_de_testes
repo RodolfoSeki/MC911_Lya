@@ -1,3 +1,4 @@
+
 While Loop
 For Loop
 Do while
@@ -6,4 +7,8 @@ parametros loc na função
 passar parametros errados na função
 testar função com parametros em forma de id_list, ex: f(a, b, c, d int)
 function com parametro f(x <- variavel, a <- endereço loc, 4 <- constante)
-declare variable as reference to another variabl
+declare variable as reference to another variable
+declaração de variavel OK
+declaracao de variavel string OK
+declaração de referencia 
+soma

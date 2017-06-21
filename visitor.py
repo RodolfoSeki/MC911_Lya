@@ -118,8 +118,8 @@ class NodeVisitor(object):
             self.visit(child)
             if hasattr(child, 'type'):
                 node.type = child.type
-            if hasattr(child, 'offset'):
-                node.offset = child.offset
+            #if hasattr(child, 'offset'):
+            #    node.offset = child.offset
             if hasattr(child, 'size'):
                 node.size = child.size
             if hasattr(child, 'repr'):
@@ -140,6 +140,7 @@ class Visitor(NodeVisitor):
     """
     def __init__(self):
         self.environment = Environment()
+        self.offset = []
         self.labelid = 1
 
     def raw_type_unary(self, node, op, val):
@@ -191,11 +192,12 @@ class Visitor(NodeVisitor):
         node.environment = self.environment
         node.symtab = self.environment.peek()
         # Visit all of the statements
-        node.offset = 0
+        self.offset.append(0) 
         node.scope = self.environment.scope_level()
         for stmt in node.stmt_list: 
             self.visit(stmt)
-            node.offset += stmt.offset if hasattr(stmt, 'offset') else 0
+            #self.offset[-1] += stmt.offset if hasattr(stmt, 'offset') else 0
+        node.offset = self.offset[-1]
 
     def visit_Declaration(self, node):
         self.visit(node.mode)
@@ -205,10 +207,9 @@ class Visitor(NodeVisitor):
                 if not( node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
                     print('Error at line {}, {} is not {}'.format(node.lineno, node.value.repr, node.mode.repr))
 
-        node.offset = 0
         for identifier in node.id_list:
-            node.offset += node.mode.size
-            identifier.offset = node.offset
+            identifier.offset = self.offset[-1]
+            self.offset[-1] += node.mode.size
 
             identifier.type = node.mode.type
             identifier.repr = identifier.name
@@ -586,16 +587,16 @@ class Visitor(NodeVisitor):
 
         self.environment.add_function(node.label.name, (node.procedure_def.param_types, node.procedure_def.result_spec))
 
-        node.offset = node.procedure_def.offset
+        #node.offset = node.procedure_def.offset
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
 
     def visit_ProcedureDefinition(self, node):
         self.environment.push(node)
+        self.offset.append(0)
         node.environment = self.environment
 
         # tuples with type and boolean Loc
         node.param_types = []
-        node.offset = 0
 
         for param in node.formal_parameter_list:
             self.visit(param)
@@ -603,9 +604,10 @@ class Visitor(NodeVisitor):
 
         for stmt in node.stmt_list:
             self.visit(stmt)
-            node.offset += stmt.offset
 
+        node.offset = self.offset[-1]
         self.environment.pop()
+        self.offset.pop()
 
         node.type = node.result_spec.type if node.result_spec else none_type
         
