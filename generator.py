@@ -3,12 +3,15 @@ from visitor import *
 class memEnvironment(object):
     def __init__(self):
         self.stack = []
+        self.modeStack = []
 
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
+        self.modeStack.append(SymbolTable(decl=enclosure))
 
     def pop(self):
         self.stack.pop()
+        self.modeStack.pop()
 
     def peek(self):
         return self.stack[-1]
@@ -19,14 +22,21 @@ class memEnvironment(object):
     def add_local(self, name, value):
         self.peek().add(name, value)
 
-    def add_root(self, name, value):
-        self.root.add(name, value)
+    def add_mode(self, name, mode):
+        self.modeStack[-1].add(name, mode)
 
     def lookup(self, name):
         for i, scope in enumerate(reversed(self.stack), 1):
             hit = scope.lookup(name)
             if hit is not None:
                 return self.scope_level() - i, hit
+        return None
+
+    def lookup_mode(self, name):
+        for scope in reversed(self.modeStack):
+            hit = scope.lookup(name)
+            if hit is not None:
+                return hit
         return None
 
     def find(self, name):
@@ -91,6 +101,7 @@ class Generator(NodeGenerator):
 
         for identifier in node.id_list:
             self.environment.add_local(identifier.repr, identifier.offset)
+            self.environment.add_mode(identifier.repr, node.mode)
 
         if node.value is not None:
             if node.mode.type == [char_type, string_type]:
@@ -178,7 +189,20 @@ class Generator(NodeGenerator):
             self.code.append(('div',))     
         elif op == '%':
             self.code.append(('mod',))     
-        #TODO Logical operators
+        elif op == '<':
+            self.code.append(('les',))     
+        elif op == '<':
+            self.code.append(('leq',))     
+        elif op == '<=':
+            self.code.append(('les',))     
+        elif op == '>':
+            self.code.append(('grt',))     
+        elif op == '>=':
+            self.code.append(('gre',))     
+        elif op == '==':
+            self.code.append(('equ',))     
+        elif op == '!=':
+            self.code.append(('neq',))     
         #TODO membership operators
 
     def generateUnaryExp(self, node, op, val):
@@ -193,16 +217,16 @@ class Generator(NodeGenerator):
 
     def generate_Identifier(self, node):
         disp, off = self.environment.lookup(node.repr)
-        if node.mode.type[-1] in [array_type]:
+        if len(node.type) > 1:
+        #if node.type[-1] in [array_type]:
              self.code.append(('ldr', disp, off))
-             self.code.append(('lmv', node.mode.size))
+             #self.code.append(('lmv', node.mode.size))
         else:
             self.code.append(('ldv', disp, off))
 
 
         
     '''
-
     def generate_SynonymDefinition(self, node):
         self.generate(node.mode)
         self.generate(node.constant_exp)
@@ -231,83 +255,41 @@ class Generator(NodeGenerator):
                 print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
             self.environment.add_local(identifier.repr, identifier.type)
 
-    def generate_IntegerMode(self, node):
-        node.type = [int_type]
-        node.repr = 'INT'
-
-    def generate_BooleanMode(self, node):
-        node.type = [bool_type]
-        node.repr = 'BOOL'
-
-    def generate_CharacterMode(self, node):
-        node.type = [char_type]
-        node.repr = 'CHAR'
-
     def generate_DiscreteRangeMode(self, node):
         self.generate(node.name)
         self.generate(node.literal_range)
         node.type = node.name.type
         node.repr = node.name.repr + '(' + node.literal_range.repr + ')'
+    '''
 
     def generate_LiteralRange(self, node):
         self.generate(node.lower)
-        self.generate(node.upper)
-        if node.lower.type[-1] != int_type:
-            print('Error at line {}, literal range lower bound cannot be {}'.format(node.lineno, node.lower.type))
-        if node.upper.type[-1] != int_type:
-            print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, node.upper.type))
 
-        node.type = node.lower.type
-        node.repr = node.lower.repr + ':' + node.upper.repr
-
+    '''
     def generate_ReferenceMode(self, node):
         self.generate(node.mode)
         node.type = node.mode.type + [pointer_type]
         node.repr = "REF " + node.mode.repr
         
-    def generate_StringMode(self, node):
-        self.generate(node.length)
-        if node.length.type[-1] != int_type:
-            print('Error at line {}, string length cannot be {}'.format(node.lineno, node.length.type[-1]))
-
-        node.type = [char_type, string_type]
-        node.repr = 'CHARS [{}]'.format(node.length.repr)
-
-    def generate_ArrayMode(self, node):
-        self.generate(node.mode)
-        node.type = []
-        node.type += node.mode.type
-        
-        for index_mode in node.index_mode_list:
-            self.generate(index_mode)
-            node.type +=  [array_type]
-        
-        node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
-    '''
     def generate_DereferencedReference(self, node):
         self.generate(node.loc)
         node.type = node.loc.type[0:-1]
         node.repr = node.loc.repr + '->'
-    
-    '''
+
+    ''' 
     def generate_ArrayElement(self, node):
         self.generate(node.loc)
-        
-        if node.loc.type == [char_type, string_type]:
-            if len(node.expr_list) != 1:
-                print("Error at line {}, String {} must have 1 dimension".format(node.lineno, node.loc.repr))
-                    
-        for exp in node.expr_list:
-            self.generate(exp)
-            if exp.type[-1] != int_type:
-                print('Error at line {}, index {} should be int'.format(node.lineno, exp.repr))
+        mode = self.environment.lookup_mode(node.loc.repr)
+        arrayMode = mode.mode
+        for expr, range, size in reversed(list(zip(node.expr_list, arrayMode.index_mode_list, arrayMode.sizes))):
+            self.generate(expr)
+            self.generate(range)
+            self.code.append(('sub',))
+            self.code.append(('idx', size))
+        self.code.append(('grc',))
+        node.size = arrayMode.sizes[len(node.expr_list) - 1]
 
-        if len(node.expr_list) >= 1:
-            node.type = node.loc.type[0:-len(node.expr_list)] # element type
-        if len(node.type) == 0:
-            print("Error at line {}, {} is not array".format(node.lineno, node.loc.repr))
-        node.repr = '{}[{}]'.format(node.loc.repr, ', '.join([exp.repr for exp in node.expr_list]))
-    
+    ''' 
     def generate_ArraySlice(self, node):
         self.generate(node.loc)
         self.generate(node.left)
@@ -405,8 +387,8 @@ class Generator(NodeGenerator):
     def generate_Operand3(self, node):
         self.generateUnaryExp(node, node.operator.op, node.operand_or_literal)
 
-
     def generate_Location(self, node):
+        '''
         if node.loc_type.__class__.__name__ == 'Identifier':
             if len(node.loc_type.type) == 1: # Primitive Type
                 disp, off = self.environment.lookup(node.loc_type.repr)
@@ -414,11 +396,14 @@ class Generator(NodeGenerator):
             else:
                 disp, off = self.environment.lookup(node.loc_type.repr)
                 self.code.append(('ldr', disp, off))
+            #    mode = self.environment.lookup_mode(node.loc_type.repr)
+            #    self.code.append(('lmv', mode.size))
         else:
             self.generate(node.loc_type)
+        '''
+        self.generate(node.loc_type)
 
     '''
-
     def generate_ReferencedLocation(self, node):
         self.generate(node.location)
         disp, off = self.environment.lookup(identifier.repr)
@@ -430,54 +415,47 @@ class Generator(NodeGenerator):
 
     def generate_ActionStatement(self, node):
         if node.label:
-            node.label.repr = node.label.name
-            if self.environment.find(node.label.name):
-                print('Error at line {}, {} already declared'.format(node.lineno, node.label.repr))
-            self.environment.add_local(node.label.repr, [none_type])
-        self.generate(node.action)
-        # node.type = node.action.type
-        node.repr = node.action.repr
-    '''
+            print(node.label)
 
+    '''
     def generate_AssignmentAction(self, node):
-        self.generate(node.expression)
-        self.generate(node.location)
-        left = node.location
-        right = node.expression
-        if hasattr(left, 'syn'):
-            print("Error at line {}, can't reassign constant value {}".format(node.lineno, left.repr))
-        if left.type != right.type:
-            if left.type and right.type:
-                if not(left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
-                    print("Error at line {}, can't assign {} of type {} to {} of type {}".format(node.lineno, right.repr, right.type, left.repr, left.type))
-        if(len(node.assigning_op.op) == 2):
-            if(node.assigning_op.op[0] not in right.type[-1].binop):
-                print('Error at line {}, {} is not supported for {}'.format(node.lineno, node.assigning_op.op, right.type[-1]))
-        #node.type = left.type
-        node.repr = ' '.join([left.repr, node.assigning_op.op, right.repr])
+        if node.location.loc_type.__class__.__name__ == 'Identifier':
+            self.generate(node.expression)
+            disp, off = self.environment.lookup(node.location.loc_type.repr)
+            self.code.append(('stv', disp, off))
+        else:
+            self.generate(node.location)
+            if self.code[-1] == ('grc',):
+                self.code.pop()
+            self.generate(node.expression)
+            self.code.append(('smv', 1))
 
-    '''
+    def generate_IfAction(self, node):
+        self.generate(node.if_exp)
+        self.code.append(('jof', node.next))
+        node.then_exp.exit = node.exit
+        node.else_exp.exit = node.exit
+        self.generate(node.then_exp)
+        self.code.append(('lbl', node.next))
+        self.generate(node.else_exp)
+        self.code.append(('lbl', node.exit))
+
     def generate_ThenClause(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
-        for stmt in node.action_statement_list: 
-            self.generate(stmt)
-        self.environment.pop()
+        for statement in node.action_statement_list:
+            self.generate(statement)
+        self.code.append(('jmp', node.exit))
     
     def generate_ElseClause(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
         if node.else_type == 'else':
             for stmt in node.bool_or_statement_list: 
                 self.generate(stmt)
+            self.code.append(('jmp', node.exit))
         else:
+            self.generate(node.bool_or_statement_list)
+            self.code.append(('jof', node.next))
             self.generate(node.then_exp)
             self.generate(node.else_exp)
-            
-        self.environment.pop()
-
+    '''
     def generate_DoAction(self, node):
         self.environment.push(node)
         node.environment = self.environment
@@ -570,10 +548,14 @@ class Generator(NodeGenerator):
                     elif param.type == [char_type]:
                         self.generate(param)
                         self.code.append(('prv',1))
+                    elif param.type[-1] == array_type:
+                        self.generate(param)
+                        assert (param.expr.__class__.__name__ == 'Location'), "Print multiple values should receive array"
+                        print(param.expr.loc_type.repr)
+                        mode = self.environment.lookup_mode(param.expr.loc_type.repr)
+                        self.code.append(('lmv', mode.size))
+                        self.code.append(('prt', mode.size))
                     else:
-                        disp, off = self.environment.lookup(param.repr)
-                        #TODO fazer load multiple values
-                        
                         print("ERROR2")
 
     

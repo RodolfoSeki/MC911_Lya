@@ -1,0 +1,7 @@
+dcl p,q,t int = 3;
+if p > 2 then
+  p = 0;
+  print("O valor de p eh 0 ", p);
+else
+  print("Nao era pra entrar");
+fi;

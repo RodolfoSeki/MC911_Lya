@@ -141,7 +141,7 @@ class Visitor(NodeVisitor):
     def __init__(self):
         self.environment = Environment()
         self.offset = []
-        self.labelid = 1
+        self.label = 1
 
     def raw_type_unary(self, node, op, val):
         if op not in val.type[-1].unaryop:
@@ -201,7 +201,6 @@ class Visitor(NodeVisitor):
     def visit_Declaration(self, node):
         self.visit(node.mode)
         self.visit(node.value)
-        print(node.mode.size)
         if node.value is not None:
             if node.mode.type != node.value.type:
                 if not(node.mode.type[-1] == node.value.type[-1] == pointer_type and node.value.type == [pointer_type]):
@@ -321,11 +320,13 @@ class Visitor(NodeVisitor):
         node.type = []
         node.type += node.mode.type
         node.size = node.mode.size
+        node.sizes = [node.size]
 
-        for index_mode in node.index_mode_list:
+        for index_mode in reversed(node.index_mode_list):
             self.visit(index_mode)
             node.type += [array_type]
             node.size *= index_mode.size
+            node.sizes.append(node.size)
         
         node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
 
@@ -481,7 +482,7 @@ class Visitor(NodeVisitor):
             self.environment.add_local(node.label.repr, [none_type])
         self.visit(node.action)
         # node.type = node.action.type
-        node.repr = node.action.repr
+        #node.repr = node.action.repr
 
     def visit_AssignmentAction(self, node):
         self.visit(node.expression)

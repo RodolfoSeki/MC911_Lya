@@ -17,18 +17,20 @@ ast = p.parse(codigo)
 #print(ast.show())
 visitor = Visitor()
 visitor.visit(ast)
-print(ast.showDecorated())
+if '--tree' in sys.argv:
+    print(ast.showDecorated())
 
-print('------ Generating Code ------')
 generator = Generator()
 generator.generate(ast)
-print('------ Code generated ------')
-print('H:', generator.H)
-print('Code:', generator.code)
-print('----------------------------')
+if '--code' in sys.argv:
+    print('------ Code generated ------')
+    print('H:', generator.H)
+    print('Code:', generator.code)
+    print('----------------------------')
 
-print('------ Running Code ------')
-vm = VirtualMachine(generator.code, string_list = generator.H)
-vm.run()
-print('----------------------------')
+if '--run' in sys.argv:
+    print('------ Running Code ------')
+    vm = VirtualMachine(generator.code, string_list = generator.H)
+    vm.run()
+    print('----------------------------')
 

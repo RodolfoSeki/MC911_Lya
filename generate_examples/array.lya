@@ -1,4 +1,9 @@
-dcl a, b array[1:10] int;
-dcl i int = 2, j int = 5;
+dcl a, b array[4:10] int;
+dcl i int = 6, j int = 5;
 a[i] = j;
-a[j] = b [i];
+b[i] = 3;
+b[5] = 2;
+b[4] = 1;
+a[j] = b[i];
+print(a);
+print(b);

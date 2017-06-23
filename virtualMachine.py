@@ -21,17 +21,17 @@ class VirtualMachine(object):
         
 
   def exec_inst(self,inst):
-    print ('Instruction: ', inst)
+    #print ('Instruction: ', inst)
     method = 'eval_' + inst[0]
     execute = getattr(self, method, None)
     if execute is not None:
       execute(inst)
-      print ('PC:{}  SP:{}'.format(self.pc, self.sp))
+      #print ('PC:{}  SP:{}'.format(self.pc, self.sp))
     else:
       raise Exception('No instruction of type {}'.format(inst[0]))
+    #print(self.M[:self.sp + 1])
   
   def get_instruction(self, i):
-    #print("i: ", i, "  ", self.code[i])
     return self.code[i]  
   
   def run(self):
