@@ -709,8 +709,9 @@ class MyParser(object):
         ''' iteration : step_enumeration
                       | range_enumeration
         '''
-        p[0] = ast.Iteration(p[1])
-        p[0].lineno = p[1].lineno
+        p[0] = p[1] 
+        #ast.Iteration(p[1])
+        #p[0].lineno = p[1].lineno
 
 
     def p_step_enumeration(self, p):
@@ -750,8 +751,9 @@ class MyParser(object):
 
 
     def p_range_enumeration(self, p):
-        ''' range_enumeration : identifier IN discrete_mode
-                              | identifier DOWN IN discrete_mode
+        # discrete_mode changed to discrete_range_mode
+        ''' range_enumeration : identifier IN discrete_range_mode 
+                              | identifier DOWN IN discrete_range_mode
         '''
         if len(p) == 4:
             p[0] = ast.RangeEnumeration(p[1], p[3])

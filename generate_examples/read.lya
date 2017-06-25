@@ -1,0 +1,21 @@
+dcl a, c int, b array[1:4] int;
+dcl s chars[10];
+
+print("Leitura de inteiro");
+print("Digite um valor:\n");
+read(a);
+print("Voce digitou ", a);
+
+print("Leitura de string");
+print("Digite uma string:\n");
+read(s);
+print("Voce digitou ", s, "\n");
+
+print("Leitura de vetor");
+print("Digite 4 valores:\n");
+do
+	for c = 0 to 3;
+		read(b[c]);
+od;
+print("Voce digitou ", b, "\n");
+

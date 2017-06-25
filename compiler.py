@@ -30,7 +30,7 @@ if '--code' in sys.argv:
 
 if '--run' in sys.argv:
     print('------ Running Code ------')
-    vm = VirtualMachine(generator.code, string_list = generator.H)
+    vm = VirtualMachine(generator.code, string_list = generator.H, verbose='--verbose' in sys.argv)
     vm.run()
     print('----------------------------')
 

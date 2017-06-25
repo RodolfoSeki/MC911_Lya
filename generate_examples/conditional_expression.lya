@@ -1,7 +1,11 @@
-dcl p,q,t int = 3;
+dcl p,q,t int = 0;
 if p > 2 then
-  p = 0;
-  print("O valor de p eh 0 ", p);
+  print("Entrou If: O valor de p eh:", p);
+elsif p < 0 then
+  print("Entrou Else If: O valor de p eh:", p);
 else
-  print("Nao era pra entrar");
+  print("Entrou Else: O valor de p eh:", p);
 fi;
+p = 0;
+print (if p then 0 elsif q then 1 elsif t then 2 else 3 fi);
+

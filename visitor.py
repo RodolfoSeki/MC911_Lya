@@ -327,6 +327,8 @@ class Visitor(NodeVisitor):
             node.type += [array_type]
             node.size *= index_mode.size
             node.sizes.append(node.size)
+        node.sizes.pop()
+        node.sizes = node.sizes[::-1]
         
         node.repr = 'ARRAY [{}] {}'.format(', '.join([index_mode.repr for index_mode in node.index_mode_list]), node.mode.repr)
 
@@ -423,10 +425,22 @@ class Visitor(NodeVisitor):
         node.repr = '{}[{}:{}]'.format(node.value.repr, node.lower.repr, node.upper.repr)
     
     def visit_ConditionalExpression(self, node):
+
+        node.next = self.label
+        self.label += 1
+
+        for child in node.children():
+            self.visit(child)
+
+        node.exit = self.label
+        self.label += 1
+
+        '''
         self.visit(node.if_expr)
         self.visit(node.then_expr)
         self.visit(node.else_expr)
         self.visit(node.elsif_expr)
+        '''
 
         node.type = node.then_expr.type
         
@@ -442,10 +456,14 @@ class Visitor(NodeVisitor):
         node.repr = 'Conditional Expression'
         
     def visit_ElsifExpression(self, node):
+
+        node.next = self.label
+        self.label += 1
+
         self.visit(node.bool_expr)
         self.visit(node.then_expr)
         self.visit(node.elsif_expr)
-            
+
         if not(node.bool_expr.type == [bool_type] ):
             print("Error at line {}, expression {} is not type bool".format(node.lineno, node.bool_expr.repr))
         
@@ -504,43 +522,60 @@ class Visitor(NodeVisitor):
     def visit_IfAction(self, node):
         node.next = self.label
         self.label += 1
+
         for child in node.children():
             self.visit(child)
+
         node.exit = self.label
         self.label += 1
 
     def visit_ElseClause(self, node):
         node.next = self.label
         self.label += 1
+
         if node.else_type == 'else':
             for stmt in node.bool_or_statement_list: 
                 self.visit(stmt)
         else:
             self.visit(node.then_exp)
             self.visit(node.else_exp)
-        node.exit = self.label
 
     def visit_DoAction(self, node):
 
-        self.start = self.label
+        node.start = self.label
         self.label += 1
 
         self.visit(node.ctrl_part)
         for stmt in node.action_statement_list: 
             self.visit(stmt)
 
-        self.end = self.label
+        node.exit = self.label
+        node.ctrl_part.exit = node.exit
         self.label += 1
 
-    ## TODO: def visit_ForControl(self, node):
-    
-    ## TODO: def visit_WhileControl(self, node):
+    def visit_ControlPart(self, node):
+        for child in node.children():
+            self.visit(child)
+            if hasattr(child, 'initialized'):
+                node.initialized = child.initialized
+
+    def visit_ForControl(self, node):
+        self.visit(node.iteration)
+
+        node.counter = node.iteration.counter
+        node.start = node.iteration.start
+        node.step = node.iteration.step
+        node.end = node.iteration.end
+        node.initialized = node.iteration.initialized
+        node.decreasing = node.iteration.decreasing
         
+
     def visit_StepEnumeration(self, node):
         self.visit(node.counter)
         self.visit(node.start)
         self.visit(node.end)
         self.visit(node.step)
+        node.initialized = False
 
         if node.counter.type[-1] != int_type:
             print('Error at line {}, loop counter {} must be of type int'.format(node.lineno, node.counter.repr))
@@ -554,6 +589,13 @@ class Visitor(NodeVisitor):
     def visit_RangeEnumeration(self, node):
         self.visit(node.counter)
         self.visit(node.mode)
+
+        node.initialized = False
+        node.start, node.end = node.mode.lower, node.mode.upper
+        if node.decreasing: # swap
+            node.start, node.end = node.end, node.start
+
+        node.step = None
         if node.mode.type[-1] != int_type:
             print('Error at line {}, range value {} must be of type int'.format(node.lineno, node.mode.repr))
 

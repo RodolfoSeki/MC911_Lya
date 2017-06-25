@@ -1,0 +1,8 @@
+1- array sempre tem que falar o upperbound?
+ex:
+	dcl v array[5] int; É inválido?
+
+2- loops incluem ultimo elemento?
+ex:
+	for c = 1 to 10; inclui o 10?
+	for c in int(1:10); inclui o 10?

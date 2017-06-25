@@ -30,6 +30,9 @@ class memEnvironment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return self.scope_level() - i, hit
+        print('Stack state')
+        print(self.stack)
+        print('Looking for ' + name)
         return None
 
     def lookup_mode(self, name):
@@ -37,6 +40,9 @@ class memEnvironment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
+        print('Mode Stack state')
+        print(self.modeStack)
+        print('Looking for ' + name)
         return None
 
     def find(self, name):
@@ -132,7 +138,7 @@ class Generator(NodeGenerator):
     # TODO: check
     def generate_CharacterStringLiteral(self, node):
         #self.code.append(('ldc', len(self.H)))  
-        self.H.append(node.string)
+        self.H.append(eval(node.string))
 
     # TODO: 3 types of print
                 
@@ -191,10 +197,8 @@ class Generator(NodeGenerator):
             self.code.append(('mod',))     
         elif op == '<':
             self.code.append(('les',))     
-        elif op == '<':
-            self.code.append(('leq',))     
         elif op == '<=':
-            self.code.append(('les',))     
+            self.code.append(('leq',))     
         elif op == '>':
             self.code.append(('grt',))     
         elif op == '>=':
@@ -216,17 +220,20 @@ class Generator(NodeGenerator):
             self.code.append(('not',))     
 
     def generate_Identifier(self, node):
-        disp, off = self.environment.lookup(node.repr)
-        if len(node.type) > 1:
-        #if node.type[-1] in [array_type]:
+        disp, off = self.environment.lookup(node.name)
+        type_ = self.environment.lookup_mode(node.name)
+        if len(type_.type) > 1:
+            #if node.type[-1] in [array_type]:
              self.code.append(('ldr', disp, off))
              #self.code.append(('lmv', node.mode.size))
         else:
             self.code.append(('ldv', disp, off))
+        node.size = type_.size
 
 
         
     '''
+
     def generate_SynonymDefinition(self, node):
         self.generate(node.mode)
         self.generate(node.constant_exp)
@@ -266,6 +273,7 @@ class Generator(NodeGenerator):
         self.generate(node.lower)
 
     '''
+
     def generate_ReferenceMode(self, node):
         self.generate(node.mode)
         node.type = node.mode.type + [pointer_type]
@@ -277,6 +285,7 @@ class Generator(NodeGenerator):
         node.repr = node.loc.repr + '->'
 
     ''' 
+
     def generate_ArrayElement(self, node):
         self.generate(node.loc)
         mode = self.environment.lookup_mode(node.loc.repr)
@@ -289,7 +298,10 @@ class Generator(NodeGenerator):
         self.code.append(('grc',))
         node.size = arrayMode.sizes[len(node.expr_list) - 1]
 
+        print(node.repr, ' = ', node.size)
+
     ''' 
+    
     def generate_ArraySlice(self, node):
         self.generate(node.loc)
         self.generate(node.left)
@@ -338,43 +350,36 @@ class Generator(NodeGenerator):
             
         node.type = node.value.type
         node.repr = '{}[{}:{}]'.format(node.value.repr, node.lower.repr, node.upper.repr)
-    
-    def generate_ConditionalExpression(self, node):
-        self.generate(node.if_expr)
-        self.generate(node.then_expr)
-        self.generate(node.else_expr)
-        self.generate(node.elsif_expr)
 
-        node.type = node.then_expr.type
-        
-        if not(node.if_expr.type == [bool_type]):
-            print('Error at line {}, condition control {} must be of type bool'.format(node.lineno, node.if_expr.repr))
-        
-        if (node.elsif_expr != None):
-            if not(node.then_expr.type == node.else_expr.type == node.elsif_expr.type):
-                print("Error at line {}, expressions {}, {} and {} are not same type".format(node.lineno, node.then_expr.repr, node.else_expr.repr, node.elsif_expr.repr))
-        else:
-            if not(node.then_expr.type == node.else_expr.type):
-                print("Error at line {}, expressions {} and {} are not same type".format(node.lineno, node.then_expr.repr, node.else_expr.repr))
-        node.repr = 'Conditional Expression'
-        
-    def generate_ElsifExpression(self, node):
-        self.generate(node.bool_expr)
-        self.generate(node.then_expr)
-        self.generate(node.elsif_expr)
-            
-        if not(node.bool_expr.type == [bool_type] ):
-            print("Error at line {}, expression {} is not type bool".format(node.lineno, node.bool_expr.repr))
-        
-        if (node.elsif_expr != None):
-            if not(node.then_expr.type == node.elsif_expr.type ):
-                print("Error at line {}, expressions {} and {} are not same type".format(node.lineno, node.then_expr.repr, node.elsif_expr.repr))
-        
-        
-        node.type = node.then_expr.type
-        node.repr = 'Elsif Expression'
     '''
 
+    def generate_ConditionalExpression(self, node):
+        self.generate(node.if_expr)
+        self.code.append(('jof', node.next))
+        node.then_expr.exit = node.exit
+        node.else_expr.exit = node.exit
+        self.generate(node.then_expr)
+        self.code.append(('lbl', node.next))
+        if node.elsif_expr is not None:
+            node.elsif_expr.exit = node.exit
+            self.generate(node.elsif_expr)
+        self.generate(node.else_expr)
+        self.code.append(('lbl', node.exit))
+
+    def generate_ThenExpression(self, node):
+        self.generate(node.expr)
+        self.code.append(('jmp', node.exit))
+    
+    def generate_ElsifExpression(self, node):
+        self.generate(node.bool_expr)
+        self.code.append(('jof', node.next))
+        node.then_expr.exit = node.exit
+        self.generate(node.then_expr)
+        self.code.append(('lbl', node.next))
+        if node.elsif_expr:
+            node.elsif_expr.exit = node.exit
+            self.generate(node.elsif_expr)
+        
     def generate_Operand0(self, node):
         self.generateBinaryExp(node, node.operand0, node.operand1, node.operator.op)
 
@@ -402,6 +407,7 @@ class Generator(NodeGenerator):
             self.generate(node.loc_type)
         '''
         self.generate(node.loc_type)
+        node.size = node.loc_type.size
 
     '''
     def generate_ReferencedLocation(self, node):
@@ -418,6 +424,7 @@ class Generator(NodeGenerator):
             print(node.label)
 
     '''
+
     def generate_AssignmentAction(self, node):
         if node.location.loc_type.__class__.__name__ == 'Identifier':
             self.generate(node.expression)
@@ -434,10 +441,11 @@ class Generator(NodeGenerator):
         self.generate(node.if_exp)
         self.code.append(('jof', node.next))
         node.then_exp.exit = node.exit
-        node.else_exp.exit = node.exit
         self.generate(node.then_exp)
         self.code.append(('lbl', node.next))
-        self.generate(node.else_exp)
+        if node.else_exp:
+            node.else_exp.exit = node.exit
+            self.generate(node.else_exp)
         self.code.append(('lbl', node.exit))
 
     def generate_ThenClause(self, node):
@@ -453,56 +461,132 @@ class Generator(NodeGenerator):
         else:
             self.generate(node.bool_or_statement_list)
             self.code.append(('jof', node.next))
+            node.then_exp.exit = node.exit
             self.generate(node.then_exp)
-            self.generate(node.else_exp)
-    '''
+            self.code.append(('lbl', node.next))
+            if node.else_exp:
+                node.else_exp.exit = node.exit
+                self.generate(node.else_exp)
+
     def generate_DoAction(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
+        # Check if needs to initialize variable
+        if hasattr(node.ctrl_part, 'initialized'):
+            self.generate(node.ctrl_part) # first call initialize variable
+        node.ctrl_part.initialized = True
 
-        self.generate(node.ctrl_part)
-
+        self.code.append(('lbl', node.start))
         for stmt in node.action_statement_list: 
             self.generate(stmt)
-            
-        self.environment.pop()
+        
+        node.ctrl_part.exit = node.exit
+        self.generate(node.ctrl_part)
+        self.code.append(('jmp', node.start))
+        self.code.append(('lbl', node.exit))
 
     def generate_ControlPart(self, node):
-        self.environment.push(node)
-        node.environment = self.environment
-        node.symtab = self.environment.peek()
-
+        node.ctrl1.exit = node.exit
         self.generate(node.ctrl1)
-        self.generate(node.ctrl2)
+        if node.initialized and node.ctrl2:
+            node.ctrl2.exit = node.exit
+            self.generate(node.ctrl2)
 
-        self.environment.pop()
+    def generate_ForControl(self, node):
+        if not node.initialized:
+            self.generate(node.iteration) 
+            node.initialized = True
+        else:
+            disp, off = self.environment.lookup(node.counter.name)
+            # Compare
+            self.code.append(('ldv', disp, off))
+            self.generate(node.end)
+            if node.decreasing:
+                self.code.append(('grt',))
+            else:
+                self.code.append(('les',))
+            self.code.append(('jof', node.exit))
+
+            # Increase/Decrease step 
+            self.code.append(('ldv', disp, off))
+            self.generate(node.step)
+            if not node.step:
+                self.code.append(('ldc', 1))
+            if node.decreasing:
+                self.code.append(('sub',))
+            else:
+                self.code.append(('add',))
+            self.code.append(('stv', disp, off))
+
+
 
     def generate_StepEnumeration(self, node):
-        self.generate(node.counter)
-        self.generate(node.start)
-        self.generate(node.end)
-        self.generate(node.step)
+        disp, off = self.environment.lookup(node.counter.name)
+        # Initialize counter 
+        if not node.initialized:
+            self.generate(node.start)
+            self.code.append(('stv', disp, off))
+            node.initialized = True
+        else:
+            print("Shouldn't enter here")
+            # Compare
+            self.code.append(('ldv', disp, off))
+            self.generate(node.end)
+            if node.decreasing:
+                self.code.append(('grt',))
+            else:
+                self.code.append(('les',))
 
-        if node.counter.type[-1] != int_type:
-            print('Error at line {}, loop counter {} must be of type int'.format(node.lineno, node.counter.repr))
-        if node.start.type[-1] != int_type:
-            print('Error at line {}, loop start value {} must be of type int'.format(node.lineno, node.start.repr))
-        if node.end.type[-1] != int_type:
-            print('Error at line {}, loop end value {} must be of type int'.format(node.lineno, node.end.repr))
-        if node.step and node.step.type[-1] != int_type:
-            print('Error at line {}, loop step value {} must be of type int'.format(node.lineno, node.step.repr))
+            # Increase/Decrease step 
+            self.code.append(('ldv', disp, off))
+            if node.step:
+                self.generate(node.step)
+            else:
+                self.code.append(('ldc', 1))
+            if node.decreasing:
+                self.code.append(('sub',))
+            else:
+                self.code.append(('add',))
+            self.code.append(('stv', disp, off))
 
     def generate_RangeEnumeration(self, node):
+        disp, off = self.environment.lookup(node.counter.name)
+
+        # Initialize counter as range lower or upper
+        if not node.initialized:
+            if node.decreasing:
+                self.generate(node.upper)
+            else:
+                self.generate(node.lower)
+            self.code.append(('stv', disp, off))
+            node.initialized = True
+        else:
+            print("Shouldn't enter here")
+            # Compare
+            self.code.append(('ldv', disp, off))
+            self.generate(node.end)
+            if node.decreasing:
+                self.code.append(('grt',))
+            else:
+                self.code.append(('les',))
+
+            # Increase/Decrease step 
+            self.code.append(('ldv', disp, off))
+            if node.step:
+                self.generate(node.step)
+            else:
+                self.code.append(('ldc', 1))
+            if node.decreasing:
+                self.code.append(('sub',))
+            else:
+                self.code.append(('add',))
+            self.code.append(('stv', disp, off))
         self.generate(node.counter)
         self.generate(node.mode)
-        if node.mode.type[-1] != int_type:
-            print('Error at line {}, range value {} must be of type int'.format(node.lineno, node.mode.repr))
 
     def generate_WhileControl(self, node):
         self.generate(node.bool_exp)
-        if node.bool_exp.type[-1] != bool_type:
-            print('Error at line {}, while control {} must be of type bool'.format(node.lineno, node.bool_exp.repr))
+        self.code.append(('jof', node.exit))
+
+    '''
 
     def generate_ProcedureCall(self, node):
         self.generate(node.name)
@@ -513,7 +597,9 @@ class Generator(NodeGenerator):
         node.type = node.name.type
         node.repr = node.name.repr.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
         ## checar parametros
+
     '''
+
     def generate_BuiltInCall(self, node):
         '''
         node.type = [int_type]
@@ -540,7 +626,7 @@ class Generator(NodeGenerator):
                 else:
                     if param.type == [char_type, string_type]:
                         disp, off = self.environment.lookup(param.repr)
-                        self.code.append(('ldr',disp, off))
+                        self.code.append(('ldr', disp, off))
                         self.code.append(('prs', ))
                     elif param.type == [int_type]:
                         self.generate(param)
@@ -549,15 +635,31 @@ class Generator(NodeGenerator):
                         self.generate(param)
                         self.code.append(('prv',1))
                     elif param.type[-1] == array_type:
-                        self.generate(param)
+                        self.generate(param.expr)
+                        if self.code[-1] == ('grc',):
+                            self.code.pop()
                         assert (param.expr.__class__.__name__ == 'Location'), "Print multiple values should receive array"
-                        print(param.expr.loc_type.repr)
-                        mode = self.environment.lookup_mode(param.expr.loc_type.repr)
-                        self.code.append(('lmv', mode.size))
-                        self.code.append(('prt', mode.size))
+                        self.code.append(('lmv', param.expr.size))
+                        self.code.append(('prt', param.expr.size))
                     else:
                         print("ERROR2")
 
+        elif func_name == 'read':
+            for param in node.param_list:
+                if param.type == [char_type, string_type]:
+                    disp, off = self.environment.lookup(param.repr)
+                    self.code.append(('ldr', disp, off))
+                    self.code.append(('rds', ))
+                elif param.expr.loc_type.__class__.__name__ == 'Identifier':
+                    disp, off = self.environment.lookup(param.repr)
+                    self.code.append(('rdv', ))
+                    self.code.append(('stv', disp, off))
+                else:
+                    self.generate(param)
+                    if self.code[-1] == ('grc',):
+                        self.code.pop()
+                    self.code.append(('rdv', ))
+                    self.code.append(('smv', 1))
     
     '''
     def generate_ProcedureStatement(self, node):

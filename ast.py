@@ -365,7 +365,7 @@ class BooleanLiteral(Node):
 
 class CharacterLiteral(Node):
     def __init__(self, val):
-        self.val= val
+        self.val = val
 
     attr_names = ('val',)
 
@@ -744,6 +744,7 @@ class ForControl(Node):
     attr_names = ()
 
 
+'''
 class Iteration(Node):
     def __init__(self, enum):
         self.enum = enum
@@ -754,6 +755,7 @@ class Iteration(Node):
         return listchildren
 
     attr_names = ()
+'''
 
 
 class StepEnumeration(Node):

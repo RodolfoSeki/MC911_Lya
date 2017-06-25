@@ -1,11 +1,12 @@
 class VirtualMachine(object):
-  def __init__(self, code, memsize=100000, scopes=100, string_list=[]):
+  def __init__(self, code, memsize=100000, scopes=100, string_list=[], verbose=False):
     self.pc = 0
     self.M = [0]*memsize
     self.D = [0]*scopes
     self.H = string_list
     self.label = dict()
     self.code = code
+    self.verbose = verbose
     
     self.get_label()
     #print(self.label)
@@ -21,15 +22,15 @@ class VirtualMachine(object):
         
 
   def exec_inst(self,inst):
-    #print ('Instruction: ', inst)
     method = 'eval_' + inst[0]
     execute = getattr(self, method, None)
     if execute is not None:
       execute(inst)
-      #print ('PC:{}  SP:{}'.format(self.pc, self.sp))
+      if self.verbose:
+        print ('PC:{} {} SP:{}'.format(self.pc, inst, self.sp))
+        print(self.M[:self.sp + 1])
     else:
       raise Exception('No instruction of type {}'.format(inst[0]))
-    #print(self.M[:self.sp + 1])
   
   def get_instruction(self, i):
     return self.code[i]  
