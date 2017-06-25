@@ -1,16 +1,45 @@
 
-While Loop
-For Loop
-Do while
+Do While Loop
+Do For Loop OK
+Do For Loop down
+Do For Loop step
+Do For Loop step down
+Do For while
 Testar Array H com as strings literal
 parametros loc na função
 passar parametros errados na função
+passar numero errado de parametros na função
 testar função com parametros em forma de id_list, ex: f(a, b, c, d int)
 function com parametro f(x <- variavel, a <- endereço loc, 4 <- constante)
+function com parametro em forma de list ex: f(a,b,c int, d char)
+function com return
+function sem return
+function sem parametro
+function loc array
+function copy array
+function loc string
+function copy string
+function loc constant string
+function copy constant string 
 declare variable as reference to another variable
 declaração de variavel OK
 declaracao de variavel string OK
 declaração de referencia 
-soma
-declaração de vetor
-assign ao elemento do vetor
+operacoes aritmeticas OK
+declaração de vetor OK
+declaração de matriz OK
+assign ao elemento do vetor OK
+read matriz OK
+read value OK
+read string OK
+print value OK
+print char 
+print string OK
+print array OK
+print array slice
+print derreferenced a->
+compare array ==
+compare string ==
+concat string
+membership operator
+syn constante na declaracao do tamanho do vetor

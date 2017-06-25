@@ -36,12 +36,12 @@ class Node(object):
                 buf.write('   ' + 'offset=' + str(getattr(self, 'offset')))
             if 'size' in dir(self):
                 buf.write('   ' + 'size=' + str(getattr(self, 'size')))
-            if 'repr' in dir(self):
-                buf.write('   ' + toGreen(getattr(self, 'repr')))
             if 'next' in dir(self):
                 buf.write('   ' + 'next=' + str(getattr(self, 'next')))
             if 'exit' in dir(self):
                 buf.write('   ' + 'exit=' + str(getattr(self, 'exit')))
+            if 'repr' in dir(self):
+                buf.write('   ' + toGreen(getattr(self, 'repr')))
             buf.write('\n')
         else:
             buf.write('\n')

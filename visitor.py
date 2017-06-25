@@ -79,6 +79,9 @@ class Environment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
+        print('Function Stack state')
+        print(self.function_stack)
+        print('Looking for ' + name)
         return None
 
     def lookup(self, name):
@@ -86,6 +89,9 @@ class Environment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
+        print('Stack state')
+        print(self.stack)
+        print('Looking for ' + name)
         return None
 
     def find(self, name):
@@ -606,7 +612,7 @@ class Visitor(NodeVisitor):
 
     def visit_ProcedureCall(self, node):
         self.visit(node.name)
-        node.parameter_types, node.result_spec = node.environment.lookup_function(node.name)
+        node.parameter_types, node.result_spec = self.environment.lookup_function(node.name.repr)
         if len(node.param_list) != len(node.parameter_types):
             print('Error at line {}, function {} expects {} arguments'.format(node.lineno, node.name, len(node.parameter_types)))
 
@@ -644,12 +650,16 @@ class Visitor(NodeVisitor):
         self.offset.append(0)
         node.environment = self.environment
 
-        # tuples with type and boolean Loc
+        node.start = self.label
+        self.label += 1
+
+        # tuples with type and boolean Loc and id_name
         node.param_types = []
 
         for param in node.formal_parameter_list:
             self.visit(param)
-            node.param_types += [(param.type, param.loc)] * len(param.id_list)
+            for ident in param.id_list:
+                node.param_types += [(param.type, param.loc, ident.name)]
 
         for stmt in node.stmt_list:
             self.visit(stmt)
@@ -657,6 +667,11 @@ class Visitor(NodeVisitor):
         node.offset = self.offset[-1]
         self.environment.pop()
         self.offset.pop()
+
+        node.ret = self.label
+        self.label += 1
+        node.exit = self.label
+        self.label += 1
 
         node.type = node.result_spec.type if node.result_spec else none_type
         

@@ -486,10 +486,11 @@ class VirtualMachine(object):
                     sp=sp-1
     '''
     ischar = False if len(inst) == 1 else inst[1]
+    # changed not to print \n 
     if ischar:
-        print(chr(self.M[self.sp]))
+        print(chr(self.M[self.sp]), end="")
     else:
-        print(self.M[self.sp])
+        print(self.M[self.sp], end="")
     self.sp -= 1
     self.pc += 1
     
@@ -501,8 +502,8 @@ class VirtualMachine(object):
                     sp-=(k-1)
     '''
     k = inst[1]
-    
-    print(self.M[self.sp-k+1:self.sp+1])
+    # changed not to print \n 
+    print(self.M[self.sp-k+1:self.sp+1], end="")
     self.sp -= (k-1)
     self.pc += 1
     
@@ -524,7 +525,7 @@ class VirtualMachine(object):
     for i in range(length):
       adr = adr + 1
       print(self.M[adr],end="")
-      self.sp -= 1
+    self.sp -= 1
     self.pc += 1
     
   def eval_stp(self,inst):

@@ -261,6 +261,7 @@ class MyParser(object):
         p[0].lineno = p.lineno(2)
 
     """
+
     def p_string_element(self, p):
         ''' string_element : identifier LBRACKET start_element RBRACKET
         '''
@@ -289,6 +290,7 @@ class MyParser(object):
         ''' right_element : expression
         '''
         p[0] = p[1]
+
     """
 
     def p_array_element(self, p):
@@ -897,7 +899,7 @@ class MyParser(object):
         ''' formal_parameter : identifier_list parameter_spec
         '''
         p[0] = ast.FormalParameter(p[1], p[2])
-        p[0].lineno = p[1].lineno
+        p[0].lineno = p[2].lineno
 
 
     def p_parameter_spec(self, p):

@@ -1,0 +1,5 @@
+f : proc(a int, b int) returns (int);
+	dcl x int = a + b;
+	return x;
+end;
+print(f(3, 5));

@@ -17,10 +17,12 @@ class memEnvironment(object):
         return self.stack[-1]
 
     def scope_level(self):
-        return len(self.stack)
+        return len(self.stack) - 1
 
     def add_local(self, name, value):
         self.peek().add(name, value)
+        print("Added {} = {}".format(name, value))
+        print(self.stack)
 
     def add_mode(self, name, mode):
         self.modeStack[-1].add(name, mode)
@@ -29,7 +31,7 @@ class memEnvironment(object):
         for i, scope in enumerate(reversed(self.stack), 1):
             hit = scope.lookup(name)
             if hit is not None:
-                return self.scope_level() - i, hit
+                return self.scope_level() - i + 1, hit
         print('Stack state')
         print(self.stack)
         print('Looking for ' + name)
@@ -54,10 +56,6 @@ class memEnvironment(object):
 class NodeGenerator(object):
 
     def generate(self, node):
-        """
-        Execute a method of the form visit_NodeName(node) where
-        NodeName is the name of the class of a particular node.
-        """
         if node:
             method = 'generate_' + node.__class__.__name__
             generator = getattr(self, method, self.generic_generate)
@@ -92,9 +90,9 @@ class Generator(NodeGenerator):
         if node.offset > 0:
             self.code.append(('alc', node.offset))      
 
-            # Generate all of the statements
-            for stmt in node.stmt_list: 
-                self.generate(stmt)
+        # Generate all of the statements
+        for stmt in node.stmt_list: 
+            self.generate(stmt)
 
         if node.offset > 0:
             self.code.append(('dlc', node.offset))      
@@ -135,51 +133,10 @@ class Generator(NodeGenerator):
     def generate_CharacterLiteral(self, node):
         self.code.append(('ldc', node.val))     
 
-    # TODO: check
     def generate_CharacterStringLiteral(self, node):
         #self.code.append(('ldc', len(self.H)))  
         self.H.append(eval(node.string))
 
-    # TODO: 3 types of print
-                
-
-    '''
-    def generate_ProcedureCall(self, node):
-        if node.offset > 0:
-            self.code.append(('alc', node.offset))      
-
-            # load parameters
-            for param, loc in reversed(node.parameter_types): 
-                if loc or array_type in param:
-                    self.code.append(('ldr', node.))      
-                else:
-                    self.code.append(('ldc', node.))      
-            
-        self.code.append(('enf', node.))      
-    '''
-
-
-
-    '''
-    def raw_type_unary(self, node, op, val):
-        if op not in val.type[-1].unaryop:
-            print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, val.type[-1]))
-        return val.type
-
-    def raw_type_binary(self, node, op, left, right):
-        if left.type != right.type:
-            if not( left.type[-1] == right.type[-1] == pointer_type and right.type == [pointer_type]):
-                print('Error at line {}, {} {} {} is not supported'.format(node.lineno, left.type[-1] , op, right.type[-1]))
-                return left.type
-        if op not in left.type[-1].binop:
-            print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, left.type[-1]))
-        if op not in right.type[-1].binop:
-            print('Error at line {}, {} is not supported for {}'.format(node.lineno, op, right.type[-1]))
-        if op.upper() in ('&&', '||', '>', '<', '>=', '<=', 'IN', '!=', '=='):
-            return [bool_type]
-        return left.type
-
-    ''' 
     def generateBinaryExp(self, node, left, right, op):
         self.generate(left)
         self.generate(right)
@@ -203,6 +160,7 @@ class Generator(NodeGenerator):
             self.code.append(('grt',))     
         elif op == '>=':
             self.code.append(('gre',))     
+        # TODO: array e string
         elif op == '==':
             self.code.append(('equ',))     
         elif op == '!=':
@@ -222,18 +180,22 @@ class Generator(NodeGenerator):
     def generate_Identifier(self, node):
         disp, off = self.environment.lookup(node.name)
         type_ = self.environment.lookup_mode(node.name)
-        if len(type_.type) > 1:
+
+        # Location
+        if hasattr(type_, 'loc'):
+            self.code.append(('lrv', disp, off))
+        # Composite mode
+        elif len(type_.type) > 1:
             #if node.type[-1] in [array_type]:
              self.code.append(('ldr', disp, off))
              #self.code.append(('lmv', node.mode.size))
+        # Primitive Value
         else:
             self.code.append(('ldv', disp, off))
         node.size = type_.size
 
-
         
     '''
-
     def generate_SynonymDefinition(self, node):
         self.generate(node.mode)
         self.generate(node.constant_exp)
@@ -267,18 +229,31 @@ class Generator(NodeGenerator):
         self.generate(node.literal_range)
         node.type = node.name.type
         node.repr = node.name.repr + '(' + node.literal_range.repr + ')'
+
     '''
 
     def generate_LiteralRange(self, node):
         self.generate(node.lower)
 
-    '''
 
-    def generate_ReferenceMode(self, node):
-        self.generate(node.mode)
-        node.type = node.mode.type + [pointer_type]
-        node.repr = "REF " + node.mode.repr
+    def generate_Location(self, node):
+        '''
+        if node.loc_type.__class__.__name__ == 'Identifier':
+            if len(node.loc_type.type) == 1: # Primitive Type
+                disp, off = self.environment.lookup(node.loc_type.repr)
+                self.code.append(('ldv', disp, off))
+            else:
+                disp, off = self.environment.lookup(node.loc_type.repr)
+                self.code.append(('ldr', disp, off))
+            #    mode = self.environment.lookup_mode(node.loc_type.repr)
+            #    self.code.append(('lmv', mode.size))
+        else:
+            self.generate(node.loc_type)
+        '''
+        self.generate(node.loc_type)
+        node.size = node.loc_type.size
         
+    '''
     def generate_DereferencedReference(self, node):
         self.generate(node.loc)
         node.type = node.loc.type[0:-1]
@@ -290,15 +265,13 @@ class Generator(NodeGenerator):
         self.generate(node.loc)
         mode = self.environment.lookup_mode(node.loc.repr)
         arrayMode = mode.mode
-        for expr, range, size in reversed(list(zip(node.expr_list, arrayMode.index_mode_list, arrayMode.sizes))):
+        for expr, range_, size in reversed(list(zip(node.expr_list, arrayMode.index_mode_list, arrayMode.sizes))):
             self.generate(expr)
-            self.generate(range)
+            self.generate(range_)
             self.code.append(('sub',))
             self.code.append(('idx', size))
         self.code.append(('grc',))
         node.size = arrayMode.sizes[len(node.expr_list) - 1]
-
-        print(node.repr, ' = ', node.size)
 
     ''' 
     
@@ -392,22 +365,6 @@ class Generator(NodeGenerator):
     def generate_Operand3(self, node):
         self.generateUnaryExp(node, node.operator.op, node.operand_or_literal)
 
-    def generate_Location(self, node):
-        '''
-        if node.loc_type.__class__.__name__ == 'Identifier':
-            if len(node.loc_type.type) == 1: # Primitive Type
-                disp, off = self.environment.lookup(node.loc_type.repr)
-                self.code.append(('ldv', disp, off))
-            else:
-                disp, off = self.environment.lookup(node.loc_type.repr)
-                self.code.append(('ldr', disp, off))
-            #    mode = self.environment.lookup_mode(node.loc_type.repr)
-            #    self.code.append(('lmv', mode.size))
-        else:
-            self.generate(node.loc_type)
-        '''
-        self.generate(node.loc_type)
-        node.size = node.loc_type.size
 
     '''
     def generate_ReferencedLocation(self, node):
@@ -586,28 +543,56 @@ class Generator(NodeGenerator):
         self.generate(node.bool_exp)
         self.code.append(('jof', node.exit))
 
-    '''
+    def generate_CallAction(self, node):
+        self.generate(node.call)
+        node.size = node.call.size
 
     def generate_ProcedureCall(self, node):
-        self.generate(node.name)
 
-        for param in node.param_list: 
-            self.generate(param)
+        for param, param_type in zip(node.param_list, node.parameter_types):
+            formal_type, isloc, formal_name = param_type # Formal parameter info
+
+            # Constant
+            if param.expr.__class__.__name__ is "PrimitiveValue":
+
+                if isloc:
+                    disp, off = self.environment.lookup(param.expr.val.repr)
+                    self.code.append(('ldr', disp, off))
+                else:
+                    self.generate(param) # load constant value or add string to H
+
+                # Constant string
+                if param.expr.val.__class__.__name__ is "CharacterStringLiteral":
+                    if isloc:
+                        self.code.append(('ldc', len(self.H) - 1))
+                    else:
+                        # TODO: Copy Constant String ex:"example"
+                        print("Can only pass character string literal as loc")
+                        #self.code.append(('ldr', disp, off))
+                        #self.code.append(('sts', len(self.H) - 1))      
+
+            # Location or reference_location
+            else:
+                # Array location
+                if param.expr.loc_type.__class__.__name__ == 'Identifier':
+                    self.generate(param) # load reference array
+                    if not isloc: # copy array
+                        self.code.append(('lmv', param.size))
+
+                # Array Element or Slice
+                else:
+                    self.generate(param)
+                    self.code.append(('lmv', param.size))
+
             
-        node.type = node.name.type
-        node.repr = node.name.repr.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
-        ## checar parametros
+            disp, label = self.environment.lookup(node.name.name)
+            #self.code.append(('cfu', label))
 
-    '''
+            node.size = node.result_spec.mode.size if node.result_spec else 0
 
     def generate_BuiltInCall(self, node):
-        '''
-        node.type = [int_type]
-        for param in node.param_list: 
-            self.generate(param)
-        node.repr = node.name.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
-        '''
-        
+        node.size = 1
+
         func_name = node.name
         
         if func_name == 'print':
@@ -654,44 +639,61 @@ class Generator(NodeGenerator):
                     disp, off = self.environment.lookup(param.repr)
                     self.code.append(('rdv', ))
                     self.code.append(('stv', disp, off))
-                else:
+                elif param.expr.loc_type.__class__.__name__ == 'ArrayElement':
                     self.generate(param)
                     if self.code[-1] == ('grc',):
                         self.code.pop()
                     self.code.append(('rdv', ))
                     self.code.append(('smv', 1))
     
-    '''
     def generate_ProcedureStatement(self, node):
-
-        self.generate(node.procedure_def.result_spec)
-        if self.environment.find(node.label.name):
-            print('Error at line {}, {} name already used'.format(node.lineno, node.label.name))
-        self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else [none_type])
-
+        node.procedure_def.label = node.label
         self.generate(node.procedure_def)
-        node.repr = node.label.name + ' : ' + node.procedure_def.repr 
 
     def generate_ProcedureDefinition(self, node):
+        self.code.append(('jmp', node.exit))
+        self.code.append(('lbl', node.start))
+        self.environment.add_local(node.label.name, node.start)
+
+        node.symtab = self.environment.peek()
         self.environment.push(node)
         node.environment = self.environment
-        node.symtab = self.environment.peek()
 
-        for param in node.formal_parameter_list:
-            self.generate(param)
+        self.code.append(('enf', node.environment.scope_level()))
+        if node.offset > 0:
+            self.code.append(('alc', node.offset))      
 
-        for stmt in node.stmt_list:
+        offset = -1 #PC 
+        if node.result_spec: # Espaço para return
+            offset -= node.result_spec.mode.size
+
+        for param in reversed(node.formal_parameter_list):
+            for identifier in param.id_list:
+                offset -= param.param_spec.mode.size
+                node.environment.add_local(identifier.name, offset)
+                if param.loc:
+                    param.param_spec.mode.loc = True
+                node.environment.add_mode(identifier.name, param.param_spec.mode)
+
+        # Generate all of the statements
+        for stmt in node.stmt_list: 
             self.generate(stmt)
 
+        if node.offset > 0:
+            self.code.append(('dlc', node.offset))      
+
+        self.code.append(('lbl', node.ret))
+        self.code.append(('ret', node.environment.scope_level(), len(node.formal_parameter_list)))
+
         self.environment.pop()
+        self.code.append(('lbl', node.exit))
 
-        node.type = node.result_spec.type if node.result_spec else none_type
-        
-        node.repr = 'PROC (' + ', '.join([param.repr for param in node.formal_parameter_list]) + ')'
-
+    '''
     def generate_FormalParameter(self, node):
         self.generate(node.param_spec)
         for identifier in node.id_list:
+            if node.loc:
+                identifier.loc = True
             self.environment.add_local(identifier.name, node.param_spec.type)
         node.repr = ', '.join([identifier.name for identifier in node.id_list]) + ' ' + node.param_spec.repr
 
