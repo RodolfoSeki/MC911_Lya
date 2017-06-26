@@ -21,8 +21,8 @@ class memEnvironment(object):
 
     def add_local(self, name, value):
         self.peek().add(name, value)
-        print("Added {} = {}".format(name, value))
-        print(self.stack)
+        #print("Added {} = {}".format(name, value))
+        #print(self.stack)
 
     def add_mode(self, name, mode):
         self.modeStack[-1].add(name, mode)
