@@ -1,0 +1,12 @@
+dcl a, b, c int = 3;
+dcl x ref int = -> a;
+dcl y ref int = -> b;
+dcl z ref int = -> c;
+
+print(x);
+print(x->);
+print(y);
+print(y->);
+print(z);
+print(z->);
+//print(->x);

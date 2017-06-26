@@ -1,7 +1,11 @@
 // test declaration of variables
 dcl x, y, z int = 30;
+print(x, y, z);
 // test declaration of string constant
-dcl s, t chars[8] = "Cachorro";
+dcl s, t chars[9] = "Cachorro";
+print(s,' ', t, ' ');
+
 // test declaration of reference
 dcl k ref int = -> x;
-
+print(k);
+print(k->);

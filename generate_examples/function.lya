@@ -2,4 +2,9 @@ f : proc(a int, b int) returns (int);
 	dcl x int = a + b;
 	return x;
 end;
-print(f(3, 5));
+print(f(13, 10));
+
+dcl a, b int = 34;
+print(f(a, 10));
+print(f(4, b));
+print(f(a, b));

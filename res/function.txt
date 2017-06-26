@@ -1,0 +1,7 @@
+Generating LALR tables
+------ Running Code ------
+23
+44
+38
+68
+----------------------------

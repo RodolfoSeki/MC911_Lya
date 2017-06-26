@@ -487,11 +487,10 @@ class VirtualMachine(object):
                     sp=sp-1
     '''
     ischar = False if len(inst) == 1 else inst[1]
-    # changed not to print \n 
     if ischar:
-        print(chr(self.M[self.sp]), end="")
+        print(chr(self.M[self.sp]))
     else:
-        print(self.M[self.sp], end="")
+        print(self.M[self.sp])
     self.sp -= 1
     self.pc += 1
     

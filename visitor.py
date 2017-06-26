@@ -258,16 +258,17 @@ class Visitor(NodeVisitor):
 
         for identifier in node.id_list:
             identifier.type = node.mode.type
+            identifier.size = node.mode.size
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
             self.environment.add_local(identifier.repr, identifier.type)
 
     def visit_Mode(self, node):
-            self.visit(node.mode)
-            node.type = node.mode.type
-            node.size = node.mode.size
-            node.repr = node.mode.repr
+        self.visit(node.mode)
+        node.type = node.mode.type
+        node.size = node.mode.size
+        node.repr = node.mode.repr
 
     def visit_IntegerMode(self, node):
         node.type = [int_type]

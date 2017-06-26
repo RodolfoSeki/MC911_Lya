@@ -69,6 +69,8 @@ class NodeGenerator(object):
             self.generate(child)
             if hasattr(child, 'type'):
                 node.type = child.type
+            if hasattr(child, 'size'):
+                node.size = child.size
             if hasattr(child, 'repr'):
                 node.repr = child.repr
             else:
@@ -229,7 +231,6 @@ class Generator(NodeGenerator):
         self.generate(node.literal_range)
         node.type = node.name.type
         node.repr = node.name.repr + '(' + node.literal_range.repr + ')'
-
     '''
 
     def generate_LiteralRange(self, node):
@@ -237,19 +238,6 @@ class Generator(NodeGenerator):
 
 
     def generate_Location(self, node):
-        '''
-        if node.loc_type.__class__.__name__ == 'Identifier':
-            if len(node.loc_type.type) == 1: # Primitive Type
-                disp, off = self.environment.lookup(node.loc_type.repr)
-                self.code.append(('ldv', disp, off))
-            else:
-                disp, off = self.environment.lookup(node.loc_type.repr)
-                self.code.append(('ldr', disp, off))
-            #    mode = self.environment.lookup_mode(node.loc_type.repr)
-            #    self.code.append(('lmv', mode.size))
-        else:
-            self.generate(node.loc_type)
-        '''
         self.generate(node.loc_type)
         if node.loc_type.__class__.__name__ != 'CallAction':
           node.size = node.loc_type.size
@@ -259,13 +247,10 @@ class Generator(NodeGenerator):
           else:
             node.size = 0
         
-    '''
     def generate_DereferencedReference(self, node):
         self.generate(node.loc)
-        node.type = node.loc.type[0:-1]
-        node.repr = node.loc.repr + '->'
-
-    ''' 
+        self.code.append(('grc',))
+        node.size = node.loc.size
 
     def generate_ArrayElement(self, node):
         self.generate(node.loc)
@@ -372,32 +357,40 @@ class Generator(NodeGenerator):
         self.generateUnaryExp(node, node.operator.op, node.operand_or_literal)
 
 
-    '''
     def generate_ReferencedLocation(self, node):
-        self.generate(node.location)
-        disp, off = self.environment.lookup(identifier.repr)
-                    self.code.append(('ldr', disp, off))
-                    self.code.append(('sts', len(self.H) - 1))      
-        self.code.append(('ldr', node.const))   
-
-        node.repr = '->' + node.location.repr
-
-    def generate_ActionStatement(self, node):
-        if node.label:
-            print(node.label)
-
-    '''
+        self.generate(node.location) # generate result
+        if self.code[-1][0] == 'ldv':
+            # read reference instead
+            reference = ('ldr', self.code[-1][1], self.code[-1][2])
+            self.code.pop()
+            self.code.append(reference)
+        elif self.code[-1] == ('grc',): # keep result on sp
+            self.code.pop()
 
     def generate_AssignmentAction(self, node):
+
+        extraop_map = {'=':None, '+=':'add', '-=':'sub', '*=':'mul', '/=':'div','%=':'mod'}
+        extraop = extraop_map[node.assigning_op.op]
+            
         if node.location.loc_type.__class__.__name__ == 'Identifier':
+            if extraop:
+                self.generate(node.location)
             self.generate(node.expression)
+            if extraop:
+                self.code.append((extraop, ))
+            disp, off = self.environment.lookup(node.location.loc_type.repr)
+
             disp, off = self.environment.lookup(node.location.loc_type.repr)
             self.code.append(('stv', disp, off))
         else:
             self.generate(node.location)
             if self.code[-1] == ('grc',):
                 self.code.pop()
+            if extraop:
+                self.generate(node.location)
             self.generate(node.expression)
+            if extraop:
+                self.code.append((extraop, ))
             self.code.append(('smv', 1))
 
     def generate_IfAction(self, node):
@@ -432,26 +425,40 @@ class Generator(NodeGenerator):
                 self.generate(node.else_exp)
 
     def generate_DoAction(self, node):
-        # Check if needs to initialize variable
-        if hasattr(node.ctrl_part, 'initialized'):
-            self.generate(node.ctrl_part) # first call initialize variable
-        node.ctrl_part.initialized = True
+
+        node.ctrl_part.ctrl1.exit = node.exit
+        if node.ctrl_part.ctrl2:
+            node.ctrl_part.ctrl2.exit = node.exit
+
+        # Initialize start value for ForControl
+        if node.ctrl_part.ctrl1.__class__.__name__ == 'ForControl':
+            self.generate(node.ctrl_part.ctrl1) 
 
         self.code.append(('lbl', node.start))
+
+        # Add While control
+        if node.ctrl_part.ctrl1.__class__.__name__ == 'WhileControl':
+            self.generate(node.ctrl_part.ctrl1) 
+        elif node.ctrl_part.ctrl2.__class__.__name__ == 'WhileControl':
+            self.generate(node.ctrl_part.ctrl2) 
+
         for stmt in node.action_statement_list: 
             self.generate(stmt)
         
-        node.ctrl_part.exit = node.exit
-        self.generate(node.ctrl_part)
+        # If ctrl1 is ForControl, add ForControl at the end
+        if node.ctrl_part.ctrl1.__class__.__name__ == 'ForControl':
+            self.generate(node.ctrl_part.ctrl1)
         self.code.append(('jmp', node.start))
         self.code.append(('lbl', node.exit))
-
+    
+    '''
     def generate_ControlPart(self, node):
         node.ctrl1.exit = node.exit
         self.generate(node.ctrl1)
         if node.initialized and node.ctrl2:
             node.ctrl2.exit = node.exit
             self.generate(node.ctrl2)
+    '''
 
     def generate_ForControl(self, node):
         if not node.initialized:
@@ -478,7 +485,6 @@ class Generator(NodeGenerator):
             else:
                 self.code.append(('add',))
             self.code.append(('stv', disp, off))
-
 
 
     def generate_StepEnumeration(self, node):
@@ -584,16 +590,23 @@ class Generator(NodeGenerator):
 
             # Location or reference_location
             else:
-                # Array location
-                if param.expr.loc_type.__class__.__name__ == 'Identifier':
-                    self.generate(param) # load reference array
-                    if not isloc: # copy array
-                        self.code.append(('lmv', param.size))
+                # Variable
+                if len(param.expr.type) == 1:
+                    self.generate(param) # ldr if loc else ldv
 
-                # Array Element or Slice
-                else:
-                    self.generate(param)
-                    self.code.append(('lmv', param.size))
+                # Array
+                elif param.expr.type[-1] == array_type:
+                    if param.expr.loc_type.__class__.__name__ == 'Identifier':
+                        self.generate(param) # load reference array or variable
+                        if not isloc: # copy array
+                            self.code.append(('lmv', param.size))
+
+                    # Array Element that is array or array slice
+                    else:
+                        self.generate(param)
+                        if not isloc: # copy array
+                            self.code.append(('lmv', param.size))
+                # TODO: Reference array
 
             
         self.code.append(('cfu', label))
@@ -637,6 +650,7 @@ class Generator(NodeGenerator):
                         self.code.append(('prt', param.expr.size))
                     else:
                         print("ERROR2")
+                        print(param.type)
 
         elif func_name == 'read':
             for param in node.param_list:
