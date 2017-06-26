@@ -182,20 +182,8 @@ class MyLexer(object):
     # Test it output
     def input(self,data):
         self.lexer.input(data)
-        print (data)
 
     def token(self):
         tok = self.lexer.token()
         #print (tok)
         return tok
-'''
-# Build the lexer and try it out
-m = MyLexer()
-m.build()           # Build the lexer
-
-# Open file
-f = open(sys.argv[1])
-codigo = ''.join(f.readlines())
-m.test(codigo)     # Test it
-
-'''
