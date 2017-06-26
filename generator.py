@@ -251,7 +251,13 @@ class Generator(NodeGenerator):
             self.generate(node.loc_type)
         '''
         self.generate(node.loc_type)
-        node.size = node.loc_type.size
+        if node.loc_type.__class__.__name__ != 'CallAction':
+          node.size = node.loc_type.size
+        else:
+          if hasattr(node.loc_type, 'type'):
+            node.size = 1
+          else:
+            node.size = 0
         
     '''
     def generate_DereferencedReference(self, node):
@@ -645,6 +651,42 @@ class Generator(NodeGenerator):
                         self.code.pop()
                     self.code.append(('rdv', ))
                     self.code.append(('smv', 1))
+        elif func_name == 'abs':
+          for param in node.param_list:
+            self.generate(param)
+            self.code.append(('abs', ))
+        #converte char para representacao inteira da tabela ascii
+        elif func_name == 'asc':
+          for param in node.param_list:
+            disp, off = self.environment.lookup(param.repr)
+            self.code.append(('ldv', disp, off))
+        #converte char de digito em inteiro
+        elif func_name == 'num':
+          for param in node.param_list:
+            disp, off = self.environment.lookup(param.repr)
+            self.code.append(('ldv', disp, off))
+            self.code.append(('ldc', 48))
+            self.code.append(('sub', ))
+        #converte lower case para upper case
+        elif func_name == 'upper':
+          for param in node.param_list:
+            disp, off = self.environment.lookup(param.repr)
+            self.code.append(('ldv', disp, off))
+            self.code.append(('ldc', 32))
+            self.code.append(('sub', ))
+            node.type == [char_type]
+        #converte upper case para lower case
+        elif func_name == 'lower':
+          for param in node.param_list:
+            disp, off = self.environment.lookup(param.repr)
+            self.code.append(('ldv', disp, off))
+            self.code.append(('ldc', 32))
+            self.code.append(('add', ))
+            node.type == [char_type]
+        #retorna inteiro indicando tamanho
+        elif func_name == 'lenght':
+          pass           
+         
     
     def generate_ProcedureStatement(self, node):
         node.procedure_def.label = node.label

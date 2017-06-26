@@ -626,7 +626,11 @@ class Visitor(NodeVisitor):
 
     def visit_BuiltInCall(self, node):
 
-        node.type = [int_type]
+        if node.name in ['upper', 'lower']:
+          node.type = [char_type]
+        else:
+          node.type = [int_type]
+          
         for param in node.param_list: 
             self.visit(param)
         node.repr = node.name.upper() + '(' + ', '.join([param.repr for param in node.param_list]) + ')'
