@@ -549,6 +549,11 @@ class Generator(NodeGenerator):
 
     def generate_ProcedureCall(self, node):
 
+        disp, label = self.environment.lookup(node.name.name)
+        node.size = node.result_spec.mode.size if node.result_spec else 0
+        if node.size > 0:
+            self.code.append(('alc', node.size))
+
         for param, param_type in zip(node.param_list, node.parameter_types):
             formal_type, isloc, formal_name = param_type # Formal parameter info
 
@@ -585,10 +590,8 @@ class Generator(NodeGenerator):
                     self.code.append(('lmv', param.size))
 
             
-            disp, label = self.environment.lookup(node.name.name)
-            #self.code.append(('cfu', label))
+        self.code.append(('cfu', label))
 
-            node.size = node.result_spec.mode.size if node.result_spec else 0
 
     def generate_BuiltInCall(self, node):
         node.size = 1
@@ -653,40 +656,48 @@ class Generator(NodeGenerator):
     def generate_ProcedureDefinition(self, node):
         self.code.append(('jmp', node.exit))
         self.code.append(('lbl', node.start))
+
         self.environment.add_local(node.label.name, node.start)
-
-        node.symtab = self.environment.peek()
         self.environment.push(node)
-        node.environment = self.environment
 
-        self.code.append(('enf', node.environment.scope_level()))
+        self.code.append(('enf', self.environment.scope_level()))
+
         if node.offset > 0:
             self.code.append(('alc', node.offset))      
 
-        offset = -1 #PC 
-        if node.result_spec: # Espaço para return
-            offset -= node.result_spec.mode.size
+        offset = -2 #PC e D[k]
 
         for param in reversed(node.formal_parameter_list):
             for identifier in param.id_list:
                 offset -= param.param_spec.mode.size
-                node.environment.add_local(identifier.name, offset)
+                self.environment.add_local(identifier.name, offset)
                 if param.loc:
                     param.param_spec.mode.loc = True
-                node.environment.add_mode(identifier.name, param.param_spec.mode)
+                self.environment.add_mode(identifier.name, param.param_spec.mode)
+
+        if node.result_spec: # Espaço para return
+            offset -= node.result_spec.mode.size
+            self.environment.add_local('return', offset)
 
         # Generate all of the statements
         for stmt in node.stmt_list: 
             self.generate(stmt)
 
-        if node.offset > 0:
-            self.code.append(('dlc', node.offset))      
 
         self.code.append(('lbl', node.ret))
-        self.code.append(('ret', node.environment.scope_level(), len(node.formal_parameter_list)))
+
+        # Save current m[sp] to return position
+        if node.result_spec:
+            return_disp, return_offset = self.environment.lookup('return')
+            self.code.append(('stv', return_disp, return_offset))
+
+        if node.offset > 0:
+            self.code.append(('dlc', node.offset))      
+        self.code.append(('ret', self.environment.scope_level(), len(node.formal_parameter_list)))
 
         self.environment.pop()
         self.code.append(('lbl', node.exit))
+
 
     '''
     def generate_FormalParameter(self, node):

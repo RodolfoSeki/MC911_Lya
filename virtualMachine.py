@@ -27,8 +27,9 @@ class VirtualMachine(object):
     if execute is not None:
       execute(inst)
       if self.verbose:
-        print ('PC:{} {} SP:{}'.format(self.pc, inst, self.sp))
-        print(self.M[:self.sp + 1])
+        print ('{1} PC:{0} SP:{2}'.format(self.pc, inst, self.sp))
+        print('M:', self.M[:self.sp + 1])
+        #print('D:', self.D[:5])
     else:
       raise Exception('No instruction of type {}'.format(inst[0]))
   
