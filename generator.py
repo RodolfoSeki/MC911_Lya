@@ -1,4 +1,5 @@
 from visitor import *
+# Testando merge de docs do git
 
 class memEnvironment(object):
     def __init__(self):
