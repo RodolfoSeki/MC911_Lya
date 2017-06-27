@@ -1,0 +1,13 @@
+dcl m,n,s int, x int = 3;
+dcl str chars[20];
+dcl a array[0:20] int;
+m = n + s;
+print(m);
+a[0] = 12;
+a[1] = 13;
+print(a[0]);
+print(a[1]);
+print(a);
+str[2] = 'c';
+print(str[2]);
+

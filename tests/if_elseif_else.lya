@@ -1,0 +1,13 @@
+if true then 
+print("if"); 
+elsif true then 
+print("elsif 1");
+elsif true then 
+print("elsif 2");
+elsif true then 
+print("elsif 3");
+elsif true then 
+print("elsif 4");
+else
+print("else");
+fi;

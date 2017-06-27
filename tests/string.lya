@@ -1,0 +1,6 @@
+dcl s chars[20] = "teste";
+dcl c char = s[1];
+print(c);
+print(s[3]);
+dcl v chars[30] = s;
+print(v);

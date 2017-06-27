@@ -1,0 +1,13 @@
+Generating LALR tables
+------ Running Code ------
+Leitura de inteiro
+Digite um valor:
+Voce digitou 20
+
+Leitura de string
+Digite uma string:
+Voce digitou Cachorro
+Leitura de vetor
+Digite 4 valores:
+Voce digitou [4, 28, 30, 43]
+----------------------------

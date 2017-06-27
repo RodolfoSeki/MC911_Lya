@@ -1,0 +1,19 @@
+Generating LALR tables
+------ Running Code ------
+Tem que ser 20
+20
+Tem que ser 30
+30
+Tem que ser 30
+30
+Tem que ser 5
+5
+Tem que ser 8
+8
+Tem que ser 4
+4
+Tem que ser 2
+2
+Tem que ser 20
+20
+----------------------------

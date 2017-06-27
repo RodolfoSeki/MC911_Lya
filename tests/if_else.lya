@@ -1,0 +1,20 @@
+dcl t, p int = 0;
+evaluate: proc(p int);
+	if p < 0 then
+	  print("Numero negativo: ", p);
+	elsif (p == 0) then
+	  print("Zero: ", p);
+	elsif (p > 0) && (p < 10) then
+	  print("Numero pequeno: ", p);
+	elsif p < 100 then
+	  print("Numero Grande: ", p);
+	else
+	  print("Numero bem grande: ", p);
+	fi;
+end;
+
+evaluate(-10);
+evaluate(p);
+evaluate(3);
+evaluate(10);
+evaluate(100);
