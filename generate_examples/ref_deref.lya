@@ -1,0 +1,7 @@
+dcl i int = 10;
+dcl a ref int;
+a = ->i;
+print(a);
+print(a->);
+print(->a);
+

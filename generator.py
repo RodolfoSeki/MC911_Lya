@@ -182,18 +182,17 @@ class Generator(NodeGenerator):
     def generate_Identifier(self, node):
         disp, off = self.environment.lookup(node.name)
         type_ = self.environment.lookup_mode(node.name)
-
+        
         # Location
         if hasattr(type_, 'loc'):
             self.code.append(('lrv', disp, off))
-        # Composite mode
-        elif len(type_.type) > 1:
-            #if node.type[-1] in [array_type]:
-             self.code.append(('ldr', disp, off))
-             #self.code.append(('lmv', node.mode.size))
-        # Primitive Value
-        else:
+        # Primitive Value or pointer
+        elif len(type_.type) == 1 or type_.type[-1] == pointer_type:
             self.code.append(('ldv', disp, off))
+        # Composite mode
+        else:
+            self.code.append(('ldr', disp, off))
+        
         node.size = type_.size
 
         
@@ -648,6 +647,12 @@ class Generator(NodeGenerator):
                         assert (param.expr.__class__.__name__ == 'Location'), "Print multiple values should receive array"
                         self.code.append(('lmv', param.expr.size))
                         self.code.append(('prt', param.expr.size))
+                    elif param.type[-1]  == pointer_type:
+                        self.generate(param)
+                        if param.type[0] == char_type:
+                            self.code.append(('prv', 1))
+                        else:
+                            self.code.append(('prv', 0))
                     else:
                         print("ERROR2")
                         print(param.type)

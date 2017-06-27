@@ -1,0 +1,6 @@
+Generating LALR tables
+------ Running Code ------
+0
+10
+1
+----------------------------
