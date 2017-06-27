@@ -188,8 +188,6 @@ class Generator(NodeGenerator):
     def generate_Identifier(self, node):
         
         if self.environment.lookup(node.name) != None:
-            print("Identifier")
-            print(node.__dict__)
             disp, off = self.environment.lookup(node.name)
             type_ = self.environment.lookup_mode(node.name)
             
@@ -205,8 +203,6 @@ class Generator(NodeGenerator):
             
             node.size = type_.size
         else:
-            print("Synonym")
-            print(node.__dict__)
             self.code.append(('ldc', self.syn_values[node.name]))
             node.size = 1
     
