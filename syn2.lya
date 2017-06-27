@@ -1,0 +1,3 @@
+syn top int = 100;
+dcl a int = 22;
+dcl v array[0:1+100] int;
