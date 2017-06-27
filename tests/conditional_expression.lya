@@ -1,0 +1,33 @@
+dcl b, c, d bool;
+dcl xx, yy, zz, ww int;
+
+xx = 10;
+yy = 20;
+zz = 30;
+ww = 40;
+
+b = true;
+xx = if b then yy else zz fi;
+print("Tem que ser 20\n", xx);
+
+c = false;
+ww = if !b then ww elsif c then yy else zz fi;
+print("Tem que ser 30\n", zz);
+
+print("Tem que ser ", ww);
+print (if !b then xx elsif !c then ww elsif true then 5 else ww fi);
+
+print("Tem que ser 5\n");
+print (if !b then xx elsif c then ww elsif true then 5 else ww fi);
+
+print("Tem que ser 8\n");
+print (if false then xx elsif false then 4 elsif true then 8 else ww fi);
+
+print("Tem que ser 4\n");
+print (if false then 20 elsif true then 4 elsif true then 8 else 10 fi);
+
+print("Tem que ser 2\n");
+print (if false then xx elsif true then 2 else 3 fi);
+
+print("Tem que ser 20\n");
+print (if true then xx elsif true then 4 elsif true then 8 else ww fi);

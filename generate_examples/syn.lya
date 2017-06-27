@@ -1,4 +1,0 @@
-syn top int = 10+1;
-dcl a int;
-a = top+10;
-print(a);

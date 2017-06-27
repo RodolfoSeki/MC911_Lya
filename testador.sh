@@ -26,27 +26,33 @@ echo "Executando os testes..."
 erros=0
 #mkdir -p dados$lab
 
-FILES=./generate_examples/*.lya
+FILES=./tests/*.lya
 for filename in $FILES; do
-    file="${filename#./generate_examples/}"
+    file="${filename#./tests/}"
     name="${file%.*}"
     
     res_file="./res/$name.txt"
+	 in_file="./input/$name.in"
     echo "$name"
     if [ -e "$res_file" ]
     then
+    	if [ -e "$in_file" ]
+		then
+        python3 "${pname}" "$filename" "--run" 2>&1 < "$in_file" | diff -q - "$res_file" &>/dev/null
+		else
         python3 "${pname}" "$filename" "--run" 2>&1 | diff -q - "$res_file" &>/dev/null
-        if [ $? -eq 0 ]; then
-            printf "${COL_GREEN}%-12s${COL_RESET}\n" "OK"
-        else
-            printf "${COL_RED}%-12s${COL_RESET}\n" "Error: output of $file doesn't match expected output"
-            echo ">>> Saida esperada:"
-            cat "$res_file"
-            echo ">>> Saida do seu programa:"
-            python3 "${pname}" "$filename" "--run" 2>&1
-            echo
-            erros=$(($erros+1))
-        fi
+		fi
+	  if [ $? -eq 0 ]; then
+			printf "${COL_GREEN}%-12s${COL_RESET}\n" "OK"
+	  else
+			printf "${COL_RED}%-12s${COL_RESET}\n" "Error: output of $file doesn't match expected output"
+			echo ">>> Saida esperada:"
+			cat "$res_file"
+			echo ">>> Saida do seu programa:"
+			python3 "${pname}" "$filename" "--run" 2>&1
+			echo
+			erros=$(($erros+1))
+	  fi
     else
         printf "${COL_RED}%-12s${COL_RESET}\n" "Error: there is no output file for test $file"
         erros=$(($erros+1))

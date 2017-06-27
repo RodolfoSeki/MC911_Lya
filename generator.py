@@ -1,5 +1,4 @@
 from visitor import *
-# Testando merge de docs do git
 
 class memEnvironment(object):
     def __init__(self):
@@ -34,9 +33,8 @@ class memEnvironment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return self.scope_level() - i + 1, hit
-        print('Stack state')
-        print(self.stack)
-        print('Looking for ' + name)
+        print('Stack status', self.stack)
+        print('Lookup for', name)
         return None
 
     def lookup_mode(self, name):
@@ -44,16 +42,13 @@ class memEnvironment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
-        print('Mode Stack state')
-        print(self.modeStack)
-        print('Looking for ' + name)
         return None
 
-    def find(self, name):
-        if name in self.stack[-1]:
-            return True
-        else:
-            return False
+    def find_all(self, name):
+        for scope in reversed(self.modeStack):
+            if name in scope:
+                return True
+        return False
 
 class NodeGenerator(object):
 
@@ -168,6 +163,10 @@ class Generator(NodeGenerator):
             self.code.append(('grt',))     
         elif op == '>=':
             self.code.append(('gre',))     
+        elif op == '||':
+            self.code.append(('lor',))     
+        elif op == '&&':
+            self.code.append(('and',))     
         # TODO: array e string
         elif op == '==':
             self.code.append(('equ',))     
@@ -187,7 +186,7 @@ class Generator(NodeGenerator):
 
     def generate_Identifier(self, node):
         
-        if self.environment.lookup(node.name) != None:
+        if self.environment.find_all(node.name):
             disp, off = self.environment.lookup(node.name)
             type_ = self.environment.lookup_mode(node.name)
             
@@ -285,6 +284,7 @@ class Generator(NodeGenerator):
     ''' 
     
     def generate_ArraySlice(self, node):
+
         self.generate(node.loc)
         self.generate(node.left)
         self.generate(node.right)
@@ -303,6 +303,7 @@ class Generator(NodeGenerator):
         node.type = [pointer_type]
         node.repr = node.val
         node.syn = True
+
         
     def generate_ValueArrayElement(self, node):
         self.generate(node.value)
@@ -318,6 +319,7 @@ class Generator(NodeGenerator):
             node.type = node.value.type
 
         node.repr = '{}[{}]'.format(node.value.repr, ', '.join([exp.repr for exp in node.exp_list]))
+
     
     def generate_ValueArraySlice(self, node):
         self.generate(node.value)
@@ -338,9 +340,11 @@ class Generator(NodeGenerator):
     def generate_ConditionalExpression(self, node):
         self.generate(node.if_expr)
         self.code.append(('jof', node.next))
+
         node.then_expr.exit = node.exit
         node.else_expr.exit = node.exit
         self.generate(node.then_expr)
+
         self.code.append(('lbl', node.next))
         if node.elsif_expr is not None:
             node.elsif_expr.exit = node.exit
@@ -353,14 +357,14 @@ class Generator(NodeGenerator):
         self.code.append(('jmp', node.exit))
     
     def generate_ElsifExpression(self, node):
+        if node.elsif_expr:
+            node.elsif_expr.exit = node.exit
+            self.generate(node.elsif_expr)
         self.generate(node.bool_expr)
         self.code.append(('jof', node.next))
         node.then_expr.exit = node.exit
         self.generate(node.then_expr)
         self.code.append(('lbl', node.next))
-        if node.elsif_expr:
-            node.elsif_expr.exit = node.exit
-            self.generate(node.elsif_expr)
         
     def generate_Operand0(self, node):
         self.generateBinaryExp(node, node.operand0, node.operand1, node.operator.op)
@@ -676,6 +680,8 @@ class Generator(NodeGenerator):
                         else:
                             self.code.append(('prv', 0))
                     else:
+                        print(param.expr.__class__.__name__)
+                        print(param.expr.loc_type.__class__.__name__)
                         print("ERROR2")
                         print(param.type)
 
@@ -728,7 +734,7 @@ class Generator(NodeGenerator):
             self.code.append(('add', ))
             node.type == [char_type]
         #retorna inteiro indicando tamanho
-        elif func_name == 'lenght':
+        elif func_name == 'length':
           pass           
          
     

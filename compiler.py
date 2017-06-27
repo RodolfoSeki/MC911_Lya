@@ -23,10 +23,10 @@ if len(sys.argv) < 2 or '--help' in sys.argv:
 
 # Get the token map from the lexer.  This is required.
 p = MyParser()
+
 f = open(sys.argv[1])
 codigo = ''.join(f.readlines())
 f.close()
-
 
 if '--input' in sys.argv:
     print('---------- Input -----------')
@@ -38,7 +38,9 @@ ast = p.parse(codigo)
 visitor = Visitor()
 visitor.visit(ast)
 if '--tree' in sys.argv:
+    print('---------- AST -----------')
     print(ast.showDecorated())
+    print('--------------------------')
 
 generator = Generator()
 generator.generate(ast)
