@@ -47,7 +47,8 @@ class Environment(object):
 
         self.function = SymbolTable()
         self.function_stack.append(self.function)
-
+        
+        
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
         self.function_stack.append(SymbolTable(decl=enclosure))
@@ -134,6 +135,8 @@ class NodeVisitor(object):
             #    node.repr = node.__class__.__name__
             if hasattr(child, 'syn'):
                 node.syn = child.syn
+            if hasattr(child, 'syn_val'):
+                node.syn_val = child.syn_val
 
     
 class Visitor(NodeVisitor):
@@ -170,6 +173,35 @@ class Visitor(NodeVisitor):
     def visitBinaryExp(self, node, left, right, op):
         self.visit(left)
         self.visit(right)
+        
+        if (hasattr(left, 'syn') or hasattr(left, 'syn_val')) and (hasattr(right, 'syn') or hasattr(right, 'syn_val')):
+            has_syn_val = True
+            if hasattr(left, 'syn_val'):
+                left_val = left.syn_val
+            elif left.repr.isdigit():
+                left_val = int(left.repr)
+            else:
+                has_syn_val = False
+              
+            if hasattr(right, 'syn_val'):
+                right_val = right.syn_val
+            elif right.repr.isdigit():
+                right_val = int(right.repr)
+            else:
+                has_syn_val = False
+            
+            if has_syn_val:
+                if op == '+':
+                    node.syn_val = left_val + right_val   
+                elif op == '-':
+                    node.syn_val = left_val + right_val
+                elif op == '*':
+                    node.syn_val = left_val + right_val
+                elif op == '/':
+                    node.syn_val = left_val + right_val
+                elif op == '%':
+                    node.syn_val = left_val % right_val
+        
         if op == None:
             node.type = left.type if left is not None else right.type
             node.repr = left.repr if left is not None else right.repr

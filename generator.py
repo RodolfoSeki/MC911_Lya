@@ -4,7 +4,8 @@ class memEnvironment(object):
     def __init__(self):
         self.stack = []
         self.modeStack = []
-
+        
+        
     def push(self, enclosure):
         self.stack.append(SymbolTable(decl=enclosure))
         self.modeStack.append(SymbolTable(decl=enclosure))
@@ -77,6 +78,8 @@ class NodeGenerator(object):
                 node.repr = node.__class__.__name__
             if hasattr(child, 'syn'):
                 node.syn = child.syn
+            if hasattr(child, 'syn_val'):
+                node.syn_val = child.syn_val
  
 
 class Generator(NodeGenerator):
@@ -85,7 +88,8 @@ class Generator(NodeGenerator):
         self.code = []
         self.H = []
         self.environment = memEnvironment()
-
+        self.syn_values = {}
+        
     def generate_Program(self, node):
         self.environment.push(node)
         self.code.append(('stp',))      
@@ -142,6 +146,7 @@ class Generator(NodeGenerator):
     def generateBinaryExp(self, node, left, right, op):
         self.generate(left)
         self.generate(right)
+         
         if op == None:
             return 
         if op == '+':
@@ -180,41 +185,49 @@ class Generator(NodeGenerator):
             self.code.append(('not',))     
 
     def generate_Identifier(self, node):
-        disp, off = self.environment.lookup(node.name)
-        type_ = self.environment.lookup_mode(node.name)
         
-        # Location
-        if hasattr(type_, 'loc'):
-            self.code.append(('lrv', disp, off))
-        # Primitive Value or pointer
-        elif len(type_.type) == 1 or type_.type[-1] == pointer_type:
-            self.code.append(('ldv', disp, off))
-        # Composite mode
+        if self.environment.lookup(node.name) != None:
+            print("Identifier")
+            print(node.__dict__)
+            disp, off = self.environment.lookup(node.name)
+            type_ = self.environment.lookup_mode(node.name)
+            
+            # Location
+            if hasattr(type_, 'loc'):
+                self.code.append(('lrv', disp, off))
+            # Primitive Value or pointer
+            elif len(type_.type) == 1 or type_.type[-1] == pointer_type:
+                self.code.append(('ldv', disp, off))
+            # Composite mode
+            else:
+                self.code.append(('ldr', disp, off))
+            
+            node.size = type_.size
         else:
-            self.code.append(('ldr', disp, off))
-        
-        node.size = type_.size
-
-        
-    '''
+            print("Synonym")
+            print(node.__dict__)
+            self.code.append(('ldc', self.syn_values[node.name]))
+            node.size = 1
+    
     def generate_SynonymDefinition(self, node):
+    
         self.generate(node.mode)
-        self.generate(node.constant_exp)
-        if not hasattr(node.constant_exp, 'syn'):
-            print('Error at line {}, in synonym definition, {} is not constant'.format(node.lineno, node.constant_exp.repr))
-
-        if node.mode is not None:
-            if node.mode.type != node.constant_exp.type:
-                if not (node.mode.type[-1] == pointer_type and node.constant_exp.type == [pointer_type]):
-                    print('Error at line {}, {} is not {}'.format(node.lineno, node.constant_exp.repr, node.mode.repr))
+        
+        if hasattr(node.constant_exp, 'syn_val'):
+            value = node.constant_exp.syn_val
+        else:
+            if node.mode.type == [int_type]:
+                value = int(node.constant_exp.repr)
+            elif node.mode.type == [char_type]:
+                value = node.constant_exp.repr
+            else:
+                print("ERRO:Synonym de tipo nao definido")
             
         for identifier in node.id_list:
-            identifier.type = node.constant_exp.type + [syn_type]
-            identifier.repr = identifier.name
-            if self.environment.find(identifier.repr):
-                print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
-            self.environment.add_root(identifier.repr, identifier.type)
+            self.syn_values[identifier.name] = value
             
+        
+    '''
     def generate_ModeDefinition(self, node):
         self.generate(node.mode)
 
