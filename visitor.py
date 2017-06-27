@@ -72,7 +72,7 @@ class Environment(object):
         self.root.add(name, value)
 
     def add_function(self, name, value):
-        self.function_stack[-1].add(name, value)
+        self.function_stack[-2].add(name, value)
 
     def lookup_function(self, name):
         for scope in reversed(self.function_stack):
@@ -643,9 +643,8 @@ class Visitor(NodeVisitor):
             print('Error at line {}, {} name already used'.format(node.lineno, node.label.name))
         self.environment.add_local(node.label.name, node.procedure_def.result_spec.type if node.procedure_def.result_spec else [none_type])
 
+        node.procedure_def.name = node.label.name
         self.visit(node.procedure_def)
-
-        self.environment.add_function(node.label.name, (node.procedure_def.param_types, node.procedure_def.result_spec))
 
         #node.offset = node.procedure_def.offset
         node.repr = node.label.name + ' : ' + node.procedure_def.repr 
@@ -665,6 +664,8 @@ class Visitor(NodeVisitor):
             self.visit(param)
             for ident in param.id_list:
                 node.param_types += [(param.type, param.loc, ident.name)]
+
+        self.environment.add_function(node.name, (node.param_types, node.result_spec))
 
         for stmt in node.stmt_list:
             self.visit(stmt)

@@ -6,6 +6,13 @@ elsif p < 0 then
 else
   print("Entrou Else: O valor de p eh:", p);
 fi;
-p = 0;
-print (if p then 0 elsif q then 1 elsif t then 2 else 3 fi);
+
+dcl a, b, c bool = true;
+print (if a then 'a' elsif b then 'b' elsif c then 'c' else 'd' fi);
+a = false;
+print (if a then 'a' elsif b then 'b' elsif c then 'c' else 'd' fi);
+b = false;
+print (if a then 'a' elsif b then 'b' elsif c then 'c' else 'd' fi);
+c = false;
+print (if a then 'a' elsif b then 'b' elsif c then 'c' else 'd' fi);
 
