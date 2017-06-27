@@ -4,9 +4,14 @@ dcl y ref int = -> b;
 dcl z ref int = -> c;
 
 print(x);
+print(->a);
 print(x->);
+print(a);
 print(y);
+print(->b);
 print(y->);
+print(b);
 print(z);
+print(->c);
 print(z->);
-//print(->x);
+print(c);

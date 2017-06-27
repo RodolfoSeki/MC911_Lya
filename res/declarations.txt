@@ -1,0 +1,12 @@
+Generating LALR tables
+------ Running Code ------
+30
+30
+30
+Cachorro 
+Cachorro 
+0
+0
+30
+30
+----------------------------

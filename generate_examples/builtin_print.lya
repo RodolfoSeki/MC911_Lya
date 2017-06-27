@@ -1,5 +1,9 @@
-
 dcl a chars[19] = "Cachorro ";
 dcl b int = 10;
 dcl c array[1:10] int;
-print(a, "é", b, 10, c);
+c[1] = 5;
+c[2] = 4;
+c[3] = 3;
+c[4] = 2;
+c[5] = 1;
+print(a, "é ", b, 10, c, "\n");

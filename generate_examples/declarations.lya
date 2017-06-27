@@ -8,4 +8,6 @@ print(s,' ', t, ' ');
 // test declaration of reference
 dcl k ref int = -> x;
 print(k);
+print(->x);
 print(k->);
+print(x);

@@ -1,0 +1,6 @@
+Generating LALR tables
+------ Running Code ------
+Cachorro é 10
+10
+[5, 4, 3, 2, 1, 0, 0, 0, 0, 0]
+----------------------------

@@ -1,0 +1,20 @@
+/* example3: */
+
+dcl m, n, o int = 10;
+
+f: proc (k int loc);
+   k += 1; // increment
+end;
+
+f(m); // increment m
+f(m); // increment m
+f(m); // increment m
+f(m); // increment m
+print(m);
+f(n); // increment n
+f(n); // increment n
+f(n); // increment n
+print(n);
+f(o); // increment o
+f(o); // increment o
+print(o);

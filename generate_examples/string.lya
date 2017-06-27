@@ -1,0 +1,5 @@
+dcl name chars[15] = "hahaha";
+dcl name2 chars[15] = "deuruim";
+dcl a chars[20] = name;
+
+print(a);

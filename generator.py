@@ -254,14 +254,23 @@ class Generator(NodeGenerator):
     def generate_ArrayElement(self, node):
         self.generate(node.loc)
         mode = self.environment.lookup_mode(node.loc.repr)
-        arrayMode = mode.mode
-        for expr, range_, size in reversed(list(zip(node.expr_list, arrayMode.index_mode_list, arrayMode.sizes))):
-            self.generate(expr)
-            self.generate(range_)
-            self.code.append(('sub',))
-            self.code.append(('idx', size))
-        self.code.append(('grc',))
-        node.size = arrayMode.sizes[len(node.expr_list) - 1]
+        # StringElement
+        if mode.type == [char_type, string_type]:
+            for expr in node.expr_list:
+                self.generate(expr)
+                self.code.append(('idx', 1))
+            self.code.append(('grc',))
+            node.size = 1
+        # ArrayElement
+        else:
+            arrayMode = mode.mode
+            for expr, range_, size in reversed(list(zip(node.expr_list, arrayMode.index_mode_list, arrayMode.sizes))):
+                self.generate(expr)
+                self.generate(range_)
+                self.code.append(('sub',))
+                self.code.append(('idx', size))
+            self.code.append(('grc',))
+            node.size = arrayMode.sizes[len(node.expr_list) - 1]
 
     ''' 
     
@@ -377,10 +386,13 @@ class Generator(NodeGenerator):
             self.generate(node.expression)
             if extraop:
                 self.code.append((extraop, ))
-            disp, off = self.environment.lookup(node.location.loc_type.repr)
 
             disp, off = self.environment.lookup(node.location.loc_type.repr)
-            self.code.append(('stv', disp, off))
+            type_ = self.environment.lookup_mode(node.location.loc_type.repr)
+            if hasattr(type_, 'loc'):
+                self.code.append(('srv', disp, off))
+            else:
+                self.code.append(('stv', disp, off))
         else:
             self.generate(node.location)
             if self.code[-1] == ('grc',):
@@ -570,12 +582,7 @@ class Generator(NodeGenerator):
 
             # Constant
             if param.expr.__class__.__name__ is "PrimitiveValue":
-
-                if isloc:
-                    disp, off = self.environment.lookup(param.expr.val.repr)
-                    self.code.append(('ldr', disp, off))
-                else:
-                    self.generate(param) # load constant value or add string to H
+                self.generate(param) # load constant value or add string to H
 
                 # Constant string
                 if param.expr.val.__class__.__name__ is "CharacterStringLiteral":
@@ -592,7 +599,12 @@ class Generator(NodeGenerator):
                 # Variable
                 if len(param.expr.type) == 1:
                     self.generate(param) # ldr if loc else ldv
-
+                    if isloc:
+                        if self.code[-1][0] == 'ldv':
+                            # read reference instead
+                            reference = ('ldr', self.code[-1][1], self.code[-1][2])
+                            self.code.pop()
+                            self.code.append(reference)
                 # Array
                 elif param.expr.type[-1] == array_type:
                     if param.expr.loc_type.__class__.__name__ == 'Identifier':

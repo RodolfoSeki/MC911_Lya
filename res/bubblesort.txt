@@ -1,0 +1,25 @@
+Generating LALR tables
+------ Running Code ------
+Unordered Array:
+28
+40
+28
+200
+2
+85
+94
+34
+20
+22
+Sorted list:
+2
+20
+22
+28
+28
+34
+40
+85
+94
+200
+----------------------------
