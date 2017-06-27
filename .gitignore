@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / Gedit file
+__pycache__/
+*.pyc
+*~
+*.out
+
+# Compiler files
+parsetab.py
+
+# unused folders
+dados/

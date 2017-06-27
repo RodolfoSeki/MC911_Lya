@@ -1,3 +1,0 @@
-/* example2: */
-
-type stack = array [1:top+1] int, b, c = char; 
