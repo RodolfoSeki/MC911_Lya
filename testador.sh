@@ -24,7 +24,7 @@ pname="compiler.py"
 
 echo "Executando os testes..."
 erros=0
-mkdir -p dados$lab
+#mkdir -p dados$lab
 
 FILES=./generate_examples/*.lya
 for filename in $FILES; do
