@@ -1,0 +1,9 @@
+dcl c, d int;
+syn top int = 10;
+type jk = array [1:top+1] int;
+dcl k jk;
+do
+  for c = 1 to 10;
+    k[c] = c;
+od;
+print(k);

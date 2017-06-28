@@ -175,13 +175,6 @@ class Visitor(NodeVisitor):
         self.visit(left)
         self.visit(right)
         
-        print()
-        print("Left")
-        print(left.__dict__)
-        print("Right")
-        print(right.__dict__)
-        print()
-        
         if left.repr in self.syn_values:
             left.syn_val = self.syn_values[left.repr]
         if right.repr in self.syn_values:
@@ -285,9 +278,7 @@ class Visitor(NodeVisitor):
         self.visit(node.mode)
         self.visit(node.constant_exp)
         
-        print("Synonym")
-        print(node.__dict__)
-        print()
+        
         if not hasattr(node.constant_exp, 'syn'):
             print('Error at line {}, in synonym definition, {} is not constant'.format(node.lineno, node.constant_exp.repr))
 
@@ -302,10 +293,6 @@ class Visitor(NodeVisitor):
             if hasattr(node.constant_exp, 'syn_val'):
                 self.syn_values[identifier.name] = node.constant_exp.syn_val
             else:
-                print("Constant exp")
-                print(node.constant_exp.__dict__)
-                print(node.constant_exp.expr.__dict__)
-                print()
                 self.syn_values[identifier.name] = int(node.constant_exp.expr.repr) 
                 
             if self.environment.find(identifier.repr):
@@ -321,12 +308,15 @@ class Visitor(NodeVisitor):
             identifier.repr = identifier.name
             if self.environment.find(identifier.repr):
                 print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
-            self.environment.add_local(identifier.repr, identifier.type)
+            self.environment.add_local(identifier.repr, (identifier.type, identifier.size))
 
     def visit_Mode(self, node):
         self.visit(node.mode)
-        node.type = node.mode.type
-        node.size = node.mode.size
+        if hasattr(node.mode, 'size'):
+            node.type = node.mode.type
+            node.size = node.mode.size
+        else:
+            node.type, node.size = self.environment.lookup(node.mode.name)
         node.repr = node.mode.repr
 
     def visit_IntegerMode(self, node):
@@ -357,23 +347,6 @@ class Visitor(NodeVisitor):
         self.visit(node.lower)
         self.visit(node.upper)
         
-        print(node.__class__.__name__)
-        print(node.__dict__)
-        print()
-        print(node.lower.__class__.__name__)
-        print(node.lower.__dict__)
-        print()
-        print(node.lower.expr.__class__.__name__)
-        print(node.lower.expr.__dict__)
-        print()
-        print(node.upper.__class__.__name__)
-        print(node.upper.__dict__)
-        print()
-        print(node.upper.expr.__class__.__name__)
-        print(node.upper.expr.__dict__)
-        
-        print("\n\n\n\n")
-        
         if node.lower.type[-1] != int_type:
             print('Error at line {}, literal range lower bound cannot be {}'.format(node.lineno, node.lower.type))
         if node.upper.type[-1] != int_type:
@@ -384,8 +357,6 @@ class Visitor(NodeVisitor):
         elif node.upper.repr in self.syn_values:
           upper_val = self.syn_values[node.upper.repr]
         else:
-          print(node.upper.__dict__)
-          
           upper_val = int(node.upper.syn_val)
         
         node.size = 1 + upper_val - int(node.lower.repr)

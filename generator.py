@@ -85,6 +85,7 @@ class Generator(NodeGenerator):
         self.H = []
         self.environment = memEnvironment()
         self.syn_values = {}
+        self.newmode = {}
         
     def generate_Program(self, node):
         self.environment.push(node)
@@ -104,7 +105,12 @@ class Generator(NodeGenerator):
 
     def generate_Declaration(self, node):
         #TODO: reference type variable
-
+        
+        
+        if node.mode.mode.__class__.__name__ == "Identifier":
+            node.mode.mode = self.newmode[node.mode.mode.name]
+        
+        
         for identifier in node.id_list:
             self.environment.add_local(identifier.repr, identifier.offset)
             self.environment.add_mode(identifier.repr, node.mode)
@@ -185,7 +191,6 @@ class Generator(NodeGenerator):
             self.code.append(('not',))     
 
     def generate_Identifier(self, node):
-        
         if self.environment.find_all(node.name):
             disp, off = self.environment.lookup(node.name)
             type_ = self.environment.lookup_mode(node.name)
@@ -202,8 +207,12 @@ class Generator(NodeGenerator):
             
             node.size = type_.size
         else:
-            self.code.append(('ldc', self.syn_values[node.name]))
-            node.size = 1
+            if node.name in self.syn_values:
+                self.code.append(('ldc', self.syn_values[node.name]))
+                node.size = 1
+            #NewmodeDefinition
+            else:
+                node.size = 1
     
     def generate_SynonymDefinition(self, node):
     
@@ -223,17 +232,18 @@ class Generator(NodeGenerator):
             self.syn_values[identifier.name] = value
             
         
-    '''
+    
     def generate_ModeDefinition(self, node):
         self.generate(node.mode)
 
         for identifier in node.id_list:
             identifier.type = node.mode.type
             identifier.repr = identifier.name
-            if self.environment.find(identifier.repr):
-                print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
-            self.environment.add_local(identifier.repr, identifier.type)
-
+            self.newmode[identifier.name] = node.mode.mode
+            
+            #self.environment.add_local(identifier.repr, identifier.type)
+    
+    '''
     def generate_DiscreteRangeMode(self, node):
         self.generate(node.name)
         self.generate(node.literal_range)
@@ -242,7 +252,6 @@ class Generator(NodeGenerator):
     '''
 
     def generate_LiteralRange(self, node):
-        print(node.__dict__)
         self.generate(node.lower)
 
 
@@ -264,6 +273,8 @@ class Generator(NodeGenerator):
     def generate_ArrayElement(self, node):
         self.generate(node.loc)
         mode = self.environment.lookup_mode(node.loc.repr)
+        
+        
         # StringElement
         if mode.type == [char_type, string_type]:
             for expr in node.expr_list:
