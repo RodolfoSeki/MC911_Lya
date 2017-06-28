@@ -274,6 +274,9 @@ class Generator(NodeGenerator):
         mode = self.environment.lookup_mode(node.loc.repr)
         
         
+        if mode.mode.__class__.__name__ == "Identifier":
+            mode.mode = self.newmode[mode.mode.name]
+        
         # StringElement
         if mode.type == [char_type, string_type]:
             for expr in node.expr_list:
