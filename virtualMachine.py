@@ -136,7 +136,7 @@ class VirtualMachine(object):
     ("div")        # Division
           M[sp-1]=M[sp-1] / M[sp];  sp=sp-1
     '''
-    self.M[self.sp - 1] = self.M[self.sp - 1] / self.M[self.sp]
+    self.M[self.sp - 1] = self.M[self.sp - 1] // self.M[self.sp]
     self.sp -= 1
     self.pc = self.pc + 1
 

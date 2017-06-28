@@ -1,0 +1,25 @@
+Generating LALR tables
+------ Running Code ------
+give-me two integers:
+GCD of 8
+2
+ is 2
+GCD of 128
+64
+ is 64
+GCD of 38
+293
+ is 1
+GCD of 230
+485
+ is 5
+GCD of 349
+233
+ is 1
+GCD of 2845
+233
+ is 1
+GCD of 2304
+2330
+ is 2
+----------------------------
