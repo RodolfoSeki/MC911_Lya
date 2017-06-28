@@ -1,0 +1,20 @@
+Generating LALR tables
+---------- Input -----------
+dcl i,j int;
+
+type vector = array [1:3] int;
+
+dcl v vector;
+do
+  for i in int(1:3);
+    v[i] = i;
+od;
+print(v);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 5), ('ldc', 1), ('stv', 0, 0), ('ldv', 0, 0), ('ldc', 1), ('lbl', 1), ('ldr', 0, 2), ('ldv', 0, 0), ('ldc', 1), ('sub',), ('idx', 1), ('ldv', 0, 0), ('smv', 1), ('ldv', 0, 0), ('ldc', 3), ('les',), ('jof', 2), ('ldv', 0, 0), ('ldc', 1), ('add',), ('stv', 0, 0), ('jmp', 1), ('lbl', 2), ('ldr', 0, 2), ('lmv', 3), ('prt', 3), ('dlc', 5), ('end',)]
+----------------------------
+------ Running Code ------
+[1, 2, 3]----------------------------

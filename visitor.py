@@ -80,9 +80,7 @@ class Environment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
-        print('Function Stack state')
-        print(self.function_stack)
-        print('Looking for ' + name)
+
         return None
 
     def lookup(self, name):
@@ -90,9 +88,7 @@ class Environment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return hit
-        print('Stack state')
-        print(self.stack)
-        print('Looking for ' + name)
+
         return None
 
     def find(self, name):
@@ -656,6 +652,7 @@ class Visitor(NodeVisitor):
 
         node.initialized = False
         node.start, node.end = node.mode.lower, node.mode.upper
+        node.lower = node.mode.lower
         if node.decreasing: # swap
             node.start, node.end = node.end, node.start
 

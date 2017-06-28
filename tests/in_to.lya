@@ -1,0 +1,10 @@
+dcl i,j int;
+
+type vector = array [1:3] int;
+
+dcl v vector;
+do
+  for i in int(1:3);
+    v[i] = i;
+od;
+print(v);

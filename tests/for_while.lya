@@ -1,8 +1,11 @@
 dcl i,soma int, b bool;
-do for i=1 to 10 while b;
+soma = 0;
+b = true;
+do for i=1 to 1000 while b;
     soma += i;
     if soma > 100 then
         b = false;
     fi;
 od;
 print (soma);
+print(i);

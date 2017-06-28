@@ -5,6 +5,7 @@ p1:proc ();
 end;
 p1();
 
+dcl i,j int;
 
 type vector = array [1:3] int;
 dcl x1 vector;
@@ -12,18 +13,16 @@ do
   for i = 1 to 3;
     x1[i] = i;
 od;
-x1[i] += x1[j];
 
 
 p2:proc () returns (int);
   dcl x int = 3;
   return x;
 end;
-dcl y1 int = p1();
+dcl y1 int = 10;
 print(y1, p2());
 
 
-type vector = array [1:3] int;
 dcl v vector;
 do
   for i in int(1:3);
@@ -31,8 +30,9 @@ do
 od;
 
 
-dcl s chars[8] = "setembro";
+dcl s chars[9] = "setembro";
 dcl b bool;
+b = false;
 if b then
   print(s);
 else
@@ -56,7 +56,7 @@ q() = x;
 
 
 dcl bb, c, d bool;
-dcl xx, yy, zz, ww int;
+dcl xx, yy, zz, ww int = 1;
 
 xx = if bb then yy else zz fi;
 ww = if bb then xx elsif c then yy else zz fi;

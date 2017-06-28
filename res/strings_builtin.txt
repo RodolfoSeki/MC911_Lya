@@ -1,0 +1,22 @@
+Generating LALR tables
+---------- Input -----------
+dcl c char = 'a';
+dcl d char = '^(65)';
+dcl dig char = '1';
+
+print(upper(c));
+print(lower(d));
+print(asc(c), asc(d), num(dig)+10);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 3), ('ldc', 97), ('stv', 0, 0), ('ldc', 65), ('stv', 0, 1), ('ldc', 49), ('stv', 0, 2), ('ldv', 0, 0), ('ldc', 32), ('sub',), ('prv', 1), ('ldv', 0, 1), ('ldc', 32), ('add',), ('prv', 1), ('ldv', 0, 0), ('prv', 0), ('ldv', 0, 1), ('prv', 0), ('ldv', 0, 2), ('ldc', 48), ('sub',), ('ldc', 10), ('add',), ('prv', 0), ('dlc', 3), ('end',)]
+----------------------------
+------ Running Code ------
+A
+a
+97
+65
+11
+----------------------------

@@ -17,7 +17,7 @@ dcl n int, sum int = 0;
 dcl temp, remainder int, digits int = 0;
  
 print("Input an integer: ");
-read(n);
+n = 370;
 temp = n;
 do
   while temp != 0;
@@ -25,8 +25,9 @@ do
     temp = temp / 10;
 od;
 temp = n;
+print("Digits: ", digits);
 do 
-  while temp != 0;
+  while temp > 0;
     remainder = temp % 10;
     sum = sum + power(remainder, digits);
     temp = temp / 10;

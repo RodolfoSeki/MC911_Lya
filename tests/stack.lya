@@ -1,4 +1,3 @@
-/* Stack of integers */
 syn top int = 10;
 type stack = array [1:top+1] int;
 

@@ -1,0 +1,43 @@
+Generating LALR tables
+---------- Input -----------
+syn top int = 10;
+type stack = array [1:top+1] int;
+
+push: proc (s stack loc, elem int);
+    if s[top+1] == top then
+        print("stack is full");
+    else
+        s[top+1] += 1;
+	s[s[top+1]] = elem;
+    fi;
+end;
+
+pop: proc (s stack loc) returns (int);
+    if s[top+1] == 0 then
+        print("empty stack");
+	result 0;
+    else
+        result s[s[top+1]];
+	s[top+1] -= 1;
+    fi;
+end;
+
+init: proc (s stack loc);
+    s[top+1] = 0;
+end;
+
+dcl q stack, v1, v2 int;
+init(q);
+read(v1, v2);
+push(q,v1);
+push(q,v2);
+print(pop(q) + pop(q));
+
+----------------------------
+------ Code generated ------
+H: ['stack is full', 'empty stack']
+Code: [('stp',), ('alc', 13), ('jmp', 6), ('lbl', 1), ('enf', 1), ('ldv', 1, -4), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldc', 10), ('equ',), ('jof', 2), ('prc', 0), ('jmp', 4), ('lbl', 2), ('ldv', 1, -4), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('ldv', 1, -4), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldc', 1), ('add',), ('smv', 1), ('ldv', 1, -4), ('ldv', 1, -4), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldc', 1), ('sub',), ('idx', 1), ('ldv', 1, -3), ('smv', 1), ('jmp', 4), ('lbl', 4), ('lbl', 5), ('ret', 1, 2), ('lbl', 6), ('jmp', 12), ('lbl', 7), ('enf', 1), ('ldv', 1, -3), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldc', 0), ('equ',), ('jof', 8), ('prc', 1), ('ldc', 0), ('jmp', 10), ('lbl', 8), ('ldv', 1, -3), ('ldv', 1, -3), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldv', 1, -3), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('ldv', 1, -3), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('grc',), ('ldc', 1), ('sub',), ('smv', 1), ('jmp', 10), ('lbl', 10), ('lbl', 11), ('stv', 1, -4), ('ret', 1, 1), ('lbl', 12), ('jmp', 15), ('lbl', 13), ('enf', 1), ('ldv', 1, -3), ('ldc', 10), ('ldc', 1), ('add',), ('ldc', 1), ('sub',), ('idx', 1), ('ldc', 0), ('smv', 1), ('lbl', 14), ('ret', 1, 1), ('lbl', 15), ('ldr', 0, 0), ('cfu', 13), ('rdv',), ('stv', 0, 11), ('rdv',), ('stv', 0, 12), ('ldr', 0, 0), ('ldv', 0, 11), ('cfu', 1), ('ldr', 0, 0), ('ldv', 0, 12), ('cfu', 1), ('alc', 1), ('ldr', 0, 0), ('cfu', 7), ('alc', 1), ('ldr', 0, 0), ('cfu', 7), ('add',), ('prv', 0), ('dlc', 13), ('end',)]
+----------------------------
+------ Running Code ------
+999
+----------------------------

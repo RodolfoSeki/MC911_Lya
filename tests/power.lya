@@ -1,0 +1,13 @@
+power: proc (n int, r int) returns (int);
+  dcl c int, p int = 1;
+  do 
+    for c = 1 to r;
+      p = p*n;
+  od;
+  return p;   
+end;
+
+print(power(3,2));
+print(power(2,3));
+print(power(10,3));
+print(power(2,20));

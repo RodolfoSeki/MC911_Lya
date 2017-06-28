@@ -1,0 +1,5 @@
+dcl a chars[10] = "Dogues";
+dcl b,c,i int  = 10;
+a[1] = 'r';
+print(a,b,c,"abs");
+

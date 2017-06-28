@@ -9,4 +9,10 @@
 * --code  : Imprime o codigo gerado pelo compilador
 * --run   : Executa o codigo
 * --debug : Opção para mostrar instruções e stack durante a execução do código
+*
+* 
+* Testador:
+* Roda os testes da pasta tests e confere com os resultados
+* ./testador.sh
+* 
 */

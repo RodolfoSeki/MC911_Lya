@@ -1,7 +1,7 @@
-dcl a chars[10] = "Cachorros";
-print(a);
-dcl b chars[10] = a;
-a[1] = 'a';
-print(a);
-//print(upper(a[1]));
-//print(lower(a[1]));
+dcl c char = 'a';
+dcl d char = '^(65)';
+dcl dig char = '1';
+
+print(upper(c));
+print(lower(d));
+print(asc(c), asc(d), num(dig)+10);

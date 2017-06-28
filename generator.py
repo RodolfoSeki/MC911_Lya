@@ -33,8 +33,6 @@ class memEnvironment(object):
             hit = scope.lookup(name)
             if hit is not None:
                 return self.scope_level() - i + 1, hit
-        print('Stack status', self.stack)
-        print('Lookup for', name)
         return None
 
     def lookup_mode(self, name):
@@ -109,11 +107,10 @@ class Generator(NodeGenerator):
         if node.mode.mode.__class__.__name__ == "Identifier":
             node.mode.mode = self.newmode[node.mode.mode.name]
         
-        
         for identifier in node.id_list:
             self.environment.add_local(identifier.repr, identifier.offset)
             self.environment.add_mode(identifier.repr, node.mode)
-
+            
         if node.value is not None:
             if node.mode.type == [char_type, string_type]:
                 self.generate(node.value)
@@ -233,7 +230,7 @@ class Generator(NodeGenerator):
         
     
     def generate_ModeDefinition(self, node):
-        self.generate(node.mode)
+        #self.generate(node.mode)
 
         for identifier in node.id_list:
             identifier.type = node.mode.type
@@ -270,7 +267,14 @@ class Generator(NodeGenerator):
         node.size = node.loc.size
 
     def generate_ArrayElement(self, node):
+        
         self.generate(node.loc)
+        if self.code[-1][0] == 'lrv':
+            # read reference instead
+            reference = ('ldv', self.code[-1][1], self.code[-1][2])
+            self.code.pop()
+            self.code.append(reference)
+        
         mode = self.environment.lookup_mode(node.loc.repr)
         
         
@@ -287,6 +291,7 @@ class Generator(NodeGenerator):
         # ArrayElement
         else:
             arrayMode = mode.mode
+            
             for expr, range_, size in reversed(list(zip(node.expr_list, arrayMode.index_mode_list, arrayMode.sizes))):
                 self.generate(expr)
                 self.generate(range_)
@@ -538,34 +543,11 @@ class Generator(NodeGenerator):
             self.generate(node.start)
             self.code.append(('stv', disp, off))
             node.initialized = True
-        else:
-            print("Shouldn't enter here")
-            # Compare
-            self.code.append(('ldv', disp, off))
-            self.generate(node.end)
-            if node.decreasing:
-                self.code.append(('grt',))
-            else:
-                self.code.append(('les',))
-
-            # Increase/Decrease step 
-            self.code.append(('ldv', disp, off))
-            if node.step:
-                self.generate(node.step)
-            else:
-                self.code.append(('ldc', 1))
-            if node.decreasing:
-                self.code.append(('sub',))
-            else:
-                self.code.append(('add',))
-            self.code.append(('stv', disp, off))
+        
 
     def generate_RangeEnumeration(self, node):
         disp, off = self.environment.lookup(node.counter.name)
-        
-        print(node.__class__.__name__)
-        print(node.__dict__)
-        print()
+
         
         # Initialize counter as range lower or upper
         if not node.initialized:
@@ -575,27 +557,7 @@ class Generator(NodeGenerator):
                 self.generate(node.lower)
             self.code.append(('stv', disp, off))
             node.initialized = True
-        else:
-            print("Shouldn't enter here")
-            # Compare
-            self.code.append(('ldv', disp, off))
-            self.generate(node.end)
-            if node.decreasing:
-                self.code.append(('grt',))
-            else:
-                self.code.append(('les',))
-
-            # Increase/Decrease step 
-            self.code.append(('ldv', disp, off))
-            if node.step:
-                self.generate(node.step)
-            else:
-                self.code.append(('ldc', 1))
-            if node.decreasing:
-                self.code.append(('sub',))
-            else:
-                self.code.append(('add',))
-            self.code.append(('stv', disp, off))
+        
         self.generate(node.counter)
         self.generate(node.mode)
 
@@ -781,10 +743,12 @@ class Generator(NodeGenerator):
 
         for param in reversed(node.formal_parameter_list):
             for identifier in param.id_list:
-                offset -= param.param_spec.mode.size
-                self.environment.add_local(identifier.name, offset)
                 if param.loc:
                     param.param_spec.mode.loc = True
+                    offset -= 1
+                else:
+                    offset -= param.param_spec.mode.size
+                self.environment.add_local(identifier.name, offset)
                 self.environment.add_mode(identifier.name, param.param_spec.mode)
 
         if node.result_spec: # Espaço para return
