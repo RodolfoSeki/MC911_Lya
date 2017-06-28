@@ -106,7 +106,6 @@ class Generator(NodeGenerator):
     def generate_Declaration(self, node):
         #TODO: reference type variable
         
-        
         if node.mode.mode.__class__.__name__ == "Identifier":
             node.mode.mode = self.newmode[node.mode.mode.name]
         

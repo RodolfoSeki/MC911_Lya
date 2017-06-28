@@ -1,0 +1,7 @@
+dcl a chars[10] = 'Cachorros';
+print(a);
+dcl b chars[10] = a;
+a[1] = 'a';
+print(a);
+print(upper(a));
+print(lower(a[1]));

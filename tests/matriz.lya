@@ -1,0 +1,11 @@
+dcl c, d int;
+dcl v array[1:5, 1:5] int;
+do
+  for c = 1 to 5;
+    do
+      for d = 1 to 5;
+          v[c,d] = c * d;
+    od;
+	 print(v[c, 1:2], "\n");
+	 print(v[c, 3:5], "\n");
+od;

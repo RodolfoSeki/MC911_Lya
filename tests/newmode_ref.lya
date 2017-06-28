@@ -1,0 +1,8 @@
+syn top int = 10;
+dcl c, d int = top;
+type jk = int;
+dcl p ref jk = ->d;
+print(p);
+print(p->);
+print(d);
+print(top);
