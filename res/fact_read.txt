@@ -1,0 +1,5 @@
+Generating LALR tables
+------ Running Code ------
+give-me a positive integer:fatorial of 40
+ = 815915283247897734345611269596115894272000000000
+----------------------------

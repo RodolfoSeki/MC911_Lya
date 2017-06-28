@@ -1,7 +1,0 @@
-/* erorroor */
-
-dcl x int; // coment
-dcl x int; /* coment */
-
-// comment
-/* erroror */

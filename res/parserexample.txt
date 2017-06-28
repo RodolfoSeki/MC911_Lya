@@ -1,0 +1,7 @@
+Generating LALR tables
+Error at line 2, a already declared
+Error at line 2, b already declared
+Error at line 2, c already declared
+Error at line 3, b already declared
+------ Running Code ------
+----------------------------
