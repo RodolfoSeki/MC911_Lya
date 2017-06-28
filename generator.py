@@ -242,6 +242,7 @@ class Generator(NodeGenerator):
     '''
 
     def generate_LiteralRange(self, node):
+        print(node.__dict__)
         self.generate(node.lower)
 
 

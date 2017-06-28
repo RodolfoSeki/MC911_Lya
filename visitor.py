@@ -150,6 +150,7 @@ class Visitor(NodeVisitor):
     def __init__(self):
         self.environment = Environment()
         self.offset = []
+        self.syn_values = {}
         self.label = 1
 
     def raw_type_unary(self, node, op, val):
@@ -173,6 +174,19 @@ class Visitor(NodeVisitor):
     def visitBinaryExp(self, node, left, right, op):
         self.visit(left)
         self.visit(right)
+        
+        print()
+        print("Left")
+        print(left.__dict__)
+        print("Right")
+        print(right.__dict__)
+        print()
+        
+        if left.repr in self.syn_values:
+            left.syn_val = self.syn_values[left.repr]
+        if right.repr in self.syn_values:
+            right.syn_val = self.syn_values[right.repr]
+        
         
         if (hasattr(left, 'syn') or hasattr(left, 'syn_val')) and (hasattr(right, 'syn') or hasattr(right, 'syn_val')):
             has_syn_val = True
@@ -270,6 +284,10 @@ class Visitor(NodeVisitor):
     def visit_SynonymDefinition(self, node):
         self.visit(node.mode)
         self.visit(node.constant_exp)
+        
+        print("Synonym")
+        print(node.__dict__)
+        print()
         if not hasattr(node.constant_exp, 'syn'):
             print('Error at line {}, in synonym definition, {} is not constant'.format(node.lineno, node.constant_exp.repr))
 
@@ -281,6 +299,15 @@ class Visitor(NodeVisitor):
         for identifier in node.id_list:
             identifier.type = node.constant_exp.type + [syn_type]
             identifier.repr = identifier.name
+            if hasattr(node.constant_exp, 'syn_val'):
+                self.syn_values[identifier.name] = node.constant_exp.syn_val
+            else:
+                print("Constant exp")
+                print(node.constant_exp.__dict__)
+                print(node.constant_exp.expr.__dict__)
+                print()
+                self.syn_values[identifier.name] = int(node.constant_exp.expr.repr) 
+                
             if self.environment.find(identifier.repr):
                 print('Error at line {}, {} already exists'.format(node.lineno, identifier.repr))
             self.environment.add_root(identifier.repr, identifier.type)
@@ -329,14 +356,41 @@ class Visitor(NodeVisitor):
     def visit_LiteralRange(self, node):
         self.visit(node.lower)
         self.visit(node.upper)
+        
+        print(node.__class__.__name__)
+        print(node.__dict__)
+        print()
+        print(node.lower.__class__.__name__)
+        print(node.lower.__dict__)
+        print()
+        print(node.lower.expr.__class__.__name__)
+        print(node.lower.expr.__dict__)
+        print()
+        print(node.upper.__class__.__name__)
+        print(node.upper.__dict__)
+        print()
+        print(node.upper.expr.__class__.__name__)
+        print(node.upper.expr.__dict__)
+        
+        print("\n\n\n\n")
+        
         if node.lower.type[-1] != int_type:
             print('Error at line {}, literal range lower bound cannot be {}'.format(node.lineno, node.lower.type))
         if node.upper.type[-1] != int_type:
             print('Error at line {}, literal range upper bound cannot be {}'.format(node.lineno, node.upper.type))
-
-        node.size = 1 + int(node.upper.repr) - int(node.lower.repr)
+        
+        if node.upper.repr.isdigit():
+          upper_val = int(node.upper.repr)
+        elif node.upper.repr in self.syn_values:
+          upper_val = self.syn_values[node.upper.repr]
+        else:
+          print(node.upper.__dict__)
+          
+          upper_val = int(node.upper.syn_val)
+        
+        node.size = 1 + upper_val - int(node.lower.repr)
         node.type = node.lower.type
-        node.repr = node.lower.repr + ':' + node.upper.repr
+        node.repr = node.lower.repr + ':' + str(upper_val)
         
 
     def visit_ReferenceMode(self, node):
