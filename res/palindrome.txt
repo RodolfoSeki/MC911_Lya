@@ -1,0 +1,9 @@
+Generating LALR tables
+------ Running Code ------
+Enter a number: 238043498593
+ is not a palindrome number.
+2922992292
+ is a palindrome number.
+12345654321
+ is a palindrome number.
+----------------------------

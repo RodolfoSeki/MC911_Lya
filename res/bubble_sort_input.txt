@@ -1,0 +1,18 @@
+Generating LALR tables
+------ Running Code ------
+Enter number of elements: Enter 12
+ integers
+Sorted list in ascending order:
+29
+ 40
+ 43
+ 48
+ 58
+ 80
+ 83
+ 138
+ 204
+ 232
+ 293
+ 340
+ ----------------------------

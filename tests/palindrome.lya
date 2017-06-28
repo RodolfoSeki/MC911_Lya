@@ -1,0 +1,40 @@
+/* Palindrome numbers: */
+
+dcl n int = 0;
+
+print("Enter a number: ");
+read(n);
+
+ispal : proc(n int) returns (bool);
+
+   dcl reverse int = 0, t int = n;
+
+	do 
+	  while t != 0;
+		 reverse = reverse * 10;
+		 reverse = reverse + t % 10;
+		 t = t / 10;
+	od;
+
+	return (n == reverse);
+end;
+
+if ispal(n) then
+  print(n, " is a palindrome number.\n");
+else
+  print(n, " is not a palindrome number.\n");
+fi;
+
+read(n);
+if ispal(n) then
+  print(n, " is a palindrome number.\n");
+else
+  print(n, " is not a palindrome number.\n");
+fi;
+
+read(n);
+if ispal(n) then
+  print(n, " is a palindrome number.\n");
+else
+  print(n, " is not a palindrome number.\n");
+fi;
