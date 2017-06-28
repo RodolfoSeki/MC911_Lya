@@ -1,0 +1,59 @@
+Generating LALR tables
+---------- Input -----------
+/* Display all prime numbers between two given
+  intervals (greater than 2): */
+
+dcl n1, n2, i, j int, flag bool;
+
+print("Enter 2 numbers (intervals) separated by space: ");
+read(n1, n2);
+print("Prime numbers between ", n1, " and ", n2, " are:\n");
+do
+  for i = n1 to n2;
+    flag = true;
+    loop: do
+      for j = 2 to i/2;
+        if i % j == 0 then
+          flag = false;
+          exit loop;
+        fi;
+    od;
+    if flag then
+      print(i, "  ");
+    fi;
+od;
+
+----------------------------
+------ Code generated ------
+H: ['Enter 2 numbers (intervals) separated by space: ', 'Prime numbers between ', ' and ', ' are:\n', '  ']
+Code: [('stp',), ('alc', 5), ('prc', 0), ('rdv',), ('stv', 0, 0), ('rdv',), ('stv', 0, 1), ('prc', 1), ('ldv', 0, 0), ('prv', 0), ('prc', 2), ('ldv', 0, 1), ('prv', 0), ('prc', 3), ('ldv', 0, 0), ('stv', 0, 2), ('lbl', 1), ('ldc', True), ('stv', 0, 4), ('ldc', 2), ('stv', 0, 3), ('lbl', 2), ('ldv', 0, 2), ('ldv', 0, 3), ('mod',), ('ldc', 0), ('equ',), ('jof', 3), ('ldc', False), ('stv', 0, 4), ('jmp', 4), ('lbl', 3), ('lbl', 4), ('ldv', 0, 3), ('ldv', 0, 2), ('ldc', 2), ('div',), ('les',), ('jof', 5), ('ldv', 0, 3), ('ldc', 1), ('add',), ('stv', 0, 3), ('jmp', 2), ('lbl', 5), ('ldv', 0, 4), ('jof', 6), ('ldv', 0, 2), ('prv', 0), ('prc', 4), ('jmp', 7), ('lbl', 6), ('lbl', 7), ('ldv', 0, 2), ('ldv', 0, 1), ('les',), ('jof', 8), ('ldv', 0, 2), ('ldc', 1), ('add',), ('stv', 0, 2), ('jmp', 1), ('lbl', 8), ('dlc', 5), ('end',)]
+----------------------------
+------ Running Code ------
+Enter 2 numbers (intervals) separated by space: Prime numbers between 2
+ and 100
+ are:
+3
+  5
+  7
+  11
+  13
+  17
+  19
+  23
+  29
+  31
+  37
+  41
+  43
+  47
+  53
+  59
+  61
+  67
+  71
+  73
+  79
+  83
+  89
+  97
+  ----------------------------

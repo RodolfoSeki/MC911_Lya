@@ -527,6 +527,11 @@ class Generator(NodeGenerator):
 
 
     def generate_StepEnumeration(self, node):
+        
+        #print(node.__class__.__name__)
+        #print(node.__dict__)
+        #print()
+        
         disp, off = self.environment.lookup(node.counter.name)
         # Initialize counter 
         if not node.initialized:
@@ -557,7 +562,11 @@ class Generator(NodeGenerator):
 
     def generate_RangeEnumeration(self, node):
         disp, off = self.environment.lookup(node.counter.name)
-
+        
+        print(node.__class__.__name__)
+        print(node.__dict__)
+        print()
+        
         # Initialize counter as range lower or upper
         if not node.initialized:
             if node.decreasing:

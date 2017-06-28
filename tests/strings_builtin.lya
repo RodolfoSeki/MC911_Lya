@@ -1,7 +1,7 @@
-dcl a chars[10] = 'Cachorros';
+dcl a chars[10] = "Cachorros";
 print(a);
 dcl b chars[10] = a;
 a[1] = 'a';
 print(a);
-print(upper(a));
-print(lower(a[1]));
+//print(upper(a[1]));
+//print(lower(a[1]));

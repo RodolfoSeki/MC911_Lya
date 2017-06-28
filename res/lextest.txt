@@ -1,0 +1,30 @@
+Generating LALR tables
+---------- Input -----------
+dcl x, y int;
+read(x,y);
+
+print("x: ", x);
+print("y: ", y);
+
+dcl c char = '^(32)';
+dcl d char = '\\';
+dcl e char = if x != y then '\t' else '.' fi;
+dcl f char = if x == y then '\n' elsif (x + y) % 2 == 0 then '^(97)' else 'Q' fi;
+print(x,c,y,d,e,f);
+
+
+----------------------------
+------ Code generated ------
+H: ['x: ', 'y: ']
+Code: [('stp',), ('alc', 6), ('rdv',), ('stv', 0, 0), ('rdv',), ('stv', 0, 1), ('prc', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 1), ('ldv', 0, 1), ('prv', 0), ('ldc', 32), ('stv', 0, 2), ('ldc', 92), ('stv', 0, 3), ('ldv', 0, 0), ('ldv', 0, 1), ('neq',), ('jof', 1), ('ldc', 11), ('jmp', 2), ('lbl', 1), ('ldc', 46), ('lbl', 2), ('stv', 0, 4), ('ldv', 0, 0), ('ldv', 0, 1), ('equ',), ('jof', 3), ('ldc', 10), ('jmp', 5), ('lbl', 3), ('ldv', 0, 0), ('ldv', 0, 1), ('add',), ('ldc', 2), ('mod',), ('ldc', 0), ('equ',), ('jof', 4), ('ldc', 97), ('jmp', 5), ('lbl', 4), ('ldc', 81), ('lbl', 5), ('stv', 0, 5), ('ldv', 0, 0), ('prv', 0), ('ldv', 0, 2), ('prv', 1), ('ldv', 0, 1), ('prv', 0), ('ldv', 0, 3), ('prv', 1), ('ldv', 0, 4), ('prv', 1), ('ldv', 0, 5), ('prv', 1), ('dlc', 6), ('end',)]
+----------------------------
+------ Running Code ------
+x: 1
+y: 2
+1
+ 
+2
+\
+
+Q
+----------------------------
