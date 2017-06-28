@@ -1,0 +1,19 @@
+Generating LALR tables
+---------- Input -----------
+dcl c, d int;
+syn top int = 10;
+type jk = array [1:top+1] int;
+dcl k jk;
+do
+  for c = 1 to 10;
+    k[c] = c;
+od;
+print(k);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 13), ('ldc', 1), ('ldc', 1), ('stv', 0, 0), ('lbl', 1), ('ldr', 0, 2), ('ldv', 0, 0), ('ldc', 1), ('sub',), ('idx', 1), ('ldv', 0, 0), ('smv', 1), ('ldv', 0, 0), ('ldc', 10), ('les',), ('jof', 2), ('ldv', 0, 0), ('ldc', 1), ('add',), ('stv', 0, 0), ('jmp', 1), ('lbl', 2), ('ldr', 0, 2), ('lmv', 11), ('prt', 11), ('dlc', 13), ('end',)]
+----------------------------
+------ Running Code ------
+[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0]----------------------------

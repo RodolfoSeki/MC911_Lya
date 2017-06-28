@@ -1,0 +1,18 @@
+Generating LALR tables
+---------- Input -----------
+/* erorroor */
+
+dcl x int; // coment
+dcl x int; /* coment */
+
+// comment
+/* erroror */
+
+----------------------------
+Error at line 3, x already declared
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 2), ('dlc', 2), ('end',)]
+----------------------------
+------ Running Code ------
+----------------------------
