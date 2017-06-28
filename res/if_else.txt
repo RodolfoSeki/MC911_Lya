@@ -1,0 +1,8 @@
+Generating LALR tables
+------ Running Code ------
+Numero negativo: -10
+Zero: 0
+Numero pequeno: 3
+Numero Grande: 10
+Numero bem grande: 100
+----------------------------

@@ -1,0 +1,7 @@
+Generating LALR tables
+Error at line 7, argument true type [bool] expected to be [int]
+------ Running Code ------
+3
+-3
+True
+----------------------------
