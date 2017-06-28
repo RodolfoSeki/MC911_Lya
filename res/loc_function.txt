@@ -1,4 +1,36 @@
 Generating LALR tables
+---------- Input -----------
+/* example3: */
+
+dcl m int;
+
+f: proc (n int, k int loc) returns (int);
+  dcl p,q,t int;
+  if n<2 then
+    k = 0;
+    result n;
+  else
+    t = f(n-1,p) + f(n-2,q);
+    k = p + q + 1;
+    result t;
+  fi;
+end;
+
+print("f(1)", f(1,m), m);
+print("f(2)", f(2,m), m);
+print("f(3)", f(3,m), m);
+print("f(4)", f(4,m), m);
+print("f(5)", f(5,m), m);
+print("f(6)", f(6,m), m);
+print("f(7)", f(7,m), m);
+print("f(8)", f(8,m), m);
+print("f(9)", f(9,m), m);
+
+----------------------------
+------ Code generated ------
+H: ['f(1)', 'f(2)', 'f(3)', 'f(4)', 'f(5)', 'f(6)', 'f(7)', 'f(8)', 'f(9)']
+Code: [('stp',), ('alc', 1), ('jmp', 6), ('lbl', 1), ('enf', 1), ('alc', 3), ('ldv', 1, -4), ('ldc', 2), ('les',), ('jof', 2), ('ldc', 0), ('srv', 1, -3), ('ldv', 1, -4), ('jmp', 4), ('lbl', 2), ('alc', 1), ('ldv', 1, -4), ('ldc', 1), ('sub',), ('ldr', 1, 0), ('cfu', 1), ('alc', 1), ('ldv', 1, -4), ('ldc', 2), ('sub',), ('ldr', 1, 1), ('cfu', 1), ('add',), ('stv', 1, 2), ('ldv', 1, 0), ('ldv', 1, 1), ('add',), ('ldc', 1), ('add',), ('srv', 1, -3), ('ldv', 1, 2), ('jmp', 4), ('lbl', 4), ('lbl', 5), ('stv', 1, -5), ('dlc', 3), ('ret', 1, 2), ('lbl', 6), ('prc', 0), ('alc', 1), ('ldc', 1), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 1), ('alc', 1), ('ldc', 2), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 2), ('alc', 1), ('ldc', 3), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 3), ('alc', 1), ('ldc', 4), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 4), ('alc', 1), ('ldc', 5), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 5), ('alc', 1), ('ldc', 6), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 6), ('alc', 1), ('ldc', 7), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 7), ('alc', 1), ('ldc', 8), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('prc', 8), ('alc', 1), ('ldc', 9), ('ldr', 0, 0), ('cfu', 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('dlc', 1), ('end',)]
+----------------------------
 ------ Running Code ------
 f(1)1
 0

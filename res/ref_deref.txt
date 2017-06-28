@@ -1,4 +1,18 @@
 Generating LALR tables
+---------- Input -----------
+dcl i int = 10;
+dcl a ref int;
+a = ->i;
+print(a);
+print(a->);
+print(->a);
+
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 2), ('ldc', 10), ('stv', 0, 0), ('ldr', 0, 0), ('stv', 0, 1), ('ldv', 0, 1), ('prv', 0), ('ldv', 0, 1), ('grc',), ('prv', 0), ('ldr', 0, 1), ('prv', 0), ('dlc', 2), ('end',)]
+----------------------------
 ------ Running Code ------
 0
 10

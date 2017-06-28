@@ -1,4 +1,21 @@
 Generating LALR tables
+---------- Input -----------
+f : proc(a int, b int) returns (int);
+	dcl x int = a + b;
+	return x;
+end;
+print(f(13, 10));
+
+dcl a, b int = 34;
+print(f(a, 10));
+print(f(4, b));
+print(f(a, b));
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 2), ('jmp', 3), ('lbl', 1), ('enf', 1), ('alc', 1), ('ldv', 1, -4), ('ldv', 1, -3), ('add',), ('stv', 1, 0), ('ldv', 1, 0), ('lbl', 2), ('stv', 1, -5), ('dlc', 1), ('ret', 1, 2), ('lbl', 3), ('alc', 1), ('ldc', 13), ('ldc', 10), ('cfu', 1), ('prv', 0), ('ldc', 34), ('stv', 0, 0), ('ldc', 34), ('stv', 0, 1), ('alc', 1), ('ldv', 0, 0), ('ldc', 10), ('cfu', 1), ('prv', 0), ('alc', 1), ('ldc', 4), ('ldv', 0, 1), ('cfu', 1), ('prv', 0), ('alc', 1), ('ldv', 0, 0), ('ldv', 0, 1), ('cfu', 1), ('prv', 0), ('dlc', 2), ('end',)]
+----------------------------
 ------ Running Code ------
 23
 44

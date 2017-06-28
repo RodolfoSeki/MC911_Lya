@@ -1,4 +1,21 @@
 Generating LALR tables
+---------- Input -----------
+/* example1: */
+dcl m,n,s int;
+m = 1;
+n = 8;
+s = 0;
+do while m <= n;
+  s += m * n;
+  print(m,s);
+  m += 1;
+od;
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 3), ('ldc', 1), ('stv', 0, 0), ('ldc', 8), ('stv', 0, 1), ('ldc', 0), ('stv', 0, 2), ('lbl', 1), ('ldv', 0, 0), ('ldv', 0, 1), ('leq',), ('jof', 2), ('ldv', 0, 2), ('ldv', 0, 0), ('ldv', 0, 1), ('mul',), ('add',), ('stv', 0, 2), ('ldv', 0, 0), ('prv', 0), ('ldv', 0, 2), ('prv', 0), ('ldv', 0, 0), ('ldc', 1), ('add',), ('stv', 0, 0), ('jmp', 1), ('lbl', 2), ('dlc', 3), ('end',)]
+----------------------------
 ------ Running Code ------
 1
 8

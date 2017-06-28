@@ -1,4 +1,31 @@
 Generating LALR tables
+---------- Input -----------
+/* example3: */
+
+dcl m, n, o int = 10;
+
+f: proc (k int loc);
+   k += 1; // increment
+end;
+
+f(m); // increment m
+f(m); // increment m
+f(m); // increment m
+f(m); // increment m
+print(m);
+f(n); // increment n
+f(n); // increment n
+f(n); // increment n
+print(n);
+f(o); // increment o
+f(o); // increment o
+print(o);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 3), ('ldc', 10), ('stv', 0, 0), ('ldc', 10), ('stv', 0, 1), ('ldc', 10), ('stv', 0, 2), ('jmp', 3), ('lbl', 1), ('enf', 1), ('lrv', 1, -3), ('ldc', 1), ('add',), ('srv', 1, -3), ('lbl', 2), ('ret', 1, 1), ('lbl', 3), ('ldr', 0, 0), ('cfu', 1), ('ldr', 0, 0), ('cfu', 1), ('ldr', 0, 0), ('cfu', 1), ('ldr', 0, 0), ('cfu', 1), ('ldv', 0, 0), ('prv', 0), ('ldr', 0, 1), ('cfu', 1), ('ldr', 0, 1), ('cfu', 1), ('ldr', 0, 1), ('cfu', 1), ('ldv', 0, 1), ('prv', 0), ('ldr', 0, 2), ('cfu', 1), ('ldr', 0, 2), ('cfu', 1), ('ldv', 0, 2), ('prv', 0), ('dlc', 3), ('end',)]
+----------------------------
 ------ Running Code ------
 14
 13

@@ -38,9 +38,9 @@ for filename in $FILES; do
     then
     	if [ -e "$in_file" ]
 		then
-        python3 "${pname}" "$filename" "--run" 2>&1 < "$in_file" | diff -q - "$res_file" &>/dev/null
+        python3 "${pname}" "$filename" "--run" "--code" "--input" 2>&1 < "$in_file" | diff -q - "$res_file" &>/dev/null
 		else
-        python3 "${pname}" "$filename" "--run" 2>&1 | diff -q - "$res_file" &>/dev/null
+        python3 "${pname}" "$filename" "--run" "--code" "--input" 2>&1 | diff -q - "$res_file" &>/dev/null
 		fi
 	  if [ $? -eq 0 ]; then
 			printf "${COL_GREEN}%-12s${COL_RESET}\n" "OK"

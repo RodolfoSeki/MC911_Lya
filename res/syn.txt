@@ -1,4 +1,15 @@
 Generating LALR tables
+---------- Input -----------
+syn top int = 10 + 1;
+dcl a int;
+a = top + 10;
+print(a);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 1), ('ldc', 11), ('ldc', 10), ('add',), ('stv', 0, 0), ('ldv', 0, 0), ('prv', 0), ('dlc', 1), ('end',)]
+----------------------------
 ------ Running Code ------
 21
 ----------------------------

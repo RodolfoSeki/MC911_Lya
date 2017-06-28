@@ -1,4 +1,20 @@
 Generating LALR tables
+---------- Input -----------
+dcl a chars[19] = "Cachorro ";
+dcl b int = 10;
+dcl c array[1:10] int;
+c[1] = 5;
+c[2] = 4;
+c[3] = 3;
+c[4] = 2;
+c[5] = 1;
+print(a, "é ", b, 10, c, "\n");
+
+----------------------------
+------ Code generated ------
+H: ['Cachorro ', 'é ', '\n']
+Code: [('stp',), ('alc', 30), ('ldr', 0, 0), ('sts', 0), ('ldc', 10), ('stv', 0, 19), ('ldr', 0, 20), ('ldc', 1), ('ldc', 1), ('sub',), ('idx', 1), ('ldc', 5), ('smv', 1), ('ldr', 0, 20), ('ldc', 2), ('ldc', 1), ('sub',), ('idx', 1), ('ldc', 4), ('smv', 1), ('ldr', 0, 20), ('ldc', 3), ('ldc', 1), ('sub',), ('idx', 1), ('ldc', 3), ('smv', 1), ('ldr', 0, 20), ('ldc', 4), ('ldc', 1), ('sub',), ('idx', 1), ('ldc', 2), ('smv', 1), ('ldr', 0, 20), ('ldc', 5), ('ldc', 1), ('sub',), ('idx', 1), ('ldc', 1), ('smv', 1), ('ldr', 0, 0), ('prs',), ('prc', 1), ('ldv', 0, 19), ('prv', 0), ('ldc', 10), ('prv', 0), ('ldr', 0, 20), ('lmv', 10), ('prt', 10), ('prc', 2), ('dlc', 30), ('end',)]
+----------------------------
 ------ Running Code ------
 Cachorro é 10
 10

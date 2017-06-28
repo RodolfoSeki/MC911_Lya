@@ -1,7 +1,17 @@
 Generating LALR tables
+---------- Input -----------
+dcl a, b, c int = 4;
+dcl a int, b char, c int = 4;
+dcl b int = 4;
+
+----------------------------
 Error at line 2, a already declared
 Error at line 2, b already declared
 Error at line 2, c already declared
 Error at line 3, b already declared
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 7), ('ldc', 4), ('stv', 0, 0), ('ldc', 4), ('stv', 0, 1), ('ldc', 4), ('stv', 0, 2), ('ldc', 4), ('stv', 0, 5), ('ldc', 4), ('stv', 0, 6), ('dlc', 7), ('end',)]
+----------------------------
 ------ Running Code ------
 ----------------------------

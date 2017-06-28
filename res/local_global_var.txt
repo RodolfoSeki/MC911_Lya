@@ -1,4 +1,32 @@
 Generating LALR tables
+---------- Input -----------
+dcl z,x int;
+
+g: proc (t int);
+   dcl y int;
+   y = t * t;
+   z = z + x + y;
+   print(z);
+end;
+
+h: proc (y int);
+  dcl x int;  
+  x = y + 1;
+  print(x);
+end;
+
+z = 1;
+x = 3;
+h(x);
+g(x);
+print(x,z);
+
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 2), ('jmp', 3), ('lbl', 1), ('enf', 1), ('alc', 1), ('ldv', 1, -3), ('ldv', 1, -3), ('mul',), ('stv', 1, 0), ('ldv', 0, 0), ('ldv', 0, 1), ('add',), ('ldv', 1, 0), ('add',), ('stv', 0, 0), ('ldv', 0, 0), ('prv', 0), ('lbl', 2), ('dlc', 1), ('ret', 1, 1), ('lbl', 3), ('jmp', 6), ('lbl', 4), ('enf', 1), ('alc', 1), ('ldv', 1, -3), ('ldc', 1), ('add',), ('stv', 1, 0), ('ldv', 1, 0), ('prv', 0), ('lbl', 5), ('dlc', 1), ('ret', 1, 1), ('lbl', 6), ('ldc', 1), ('stv', 0, 0), ('ldc', 3), ('stv', 0, 1), ('ldv', 0, 1), ('cfu', 4), ('ldv', 0, 1), ('cfu', 1), ('ldv', 0, 1), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('dlc', 2), ('end',)]
+----------------------------
 ------ Running Code ------
 4
 13

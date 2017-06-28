@@ -1,4 +1,12 @@
 Generating LALR tables
+---------- Input -----------
+print(if true then 1 elsif true then 2 elsif true then 3 elsif true then 4 elsif true then 5 else 6 fi);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('ldc', True), ('jof', 1), ('ldc', 1), ('jmp', 6), ('lbl', 1), ('ldc', True), ('jof', 5), ('ldc', 2), ('jmp', 6), ('lbl', 5), ('ldc', True), ('jof', 4), ('ldc', 3), ('jmp', 6), ('lbl', 4), ('ldc', True), ('jof', 3), ('ldc', 4), ('jmp', 6), ('lbl', 3), ('ldc', True), ('jof', 2), ('ldc', 5), ('jmp', 6), ('lbl', 2), ('ldc', 6), ('lbl', 6), ('prv', 0), ('end',)]
+----------------------------
 ------ Running Code ------
 1
 ----------------------------

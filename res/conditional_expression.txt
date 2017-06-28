@@ -1,4 +1,44 @@
 Generating LALR tables
+---------- Input -----------
+dcl b, c, d bool;
+dcl xx, yy, zz, ww int;
+
+xx = 10;
+yy = 20;
+zz = 30;
+ww = 40;
+
+b = true;
+xx = if b then yy else zz fi;
+print("Tem que ser 20\n", xx);
+
+c = false;
+ww = if !b then ww elsif c then yy else zz fi;
+print("Tem que ser 30\n", zz);
+
+print("Tem que ser ", ww);
+print (if !b then xx elsif !c then ww elsif true then 5 else ww fi);
+
+print("Tem que ser 5\n");
+print (if !b then xx elsif c then ww elsif true then 5 else ww fi);
+
+print("Tem que ser 8\n");
+print (if false then xx elsif false then 4 elsif true then 8 else ww fi);
+
+print("Tem que ser 4\n");
+print (if false then 20 elsif true then 4 elsif true then 8 else 10 fi);
+
+print("Tem que ser 2\n");
+print (if false then xx elsif true then 2 else 3 fi);
+
+print("Tem que ser 20\n");
+print (if true then xx elsif true then 4 elsif true then 8 else ww fi);
+
+----------------------------
+------ Code generated ------
+H: ['Tem que ser 20\n', 'Tem que ser 30\n', 'Tem que ser ', 'Tem que ser 5\n', 'Tem que ser 8\n', 'Tem que ser 4\n', 'Tem que ser 2\n', 'Tem que ser 20\n']
+Code: [('stp',), ('alc', 7), ('ldc', 10), ('stv', 0, 3), ('ldc', 20), ('stv', 0, 4), ('ldc', 30), ('stv', 0, 5), ('ldc', 40), ('stv', 0, 6), ('ldc', True), ('stv', 0, 0), ('ldv', 0, 0), ('jof', 1), ('ldv', 0, 4), ('jmp', 2), ('lbl', 1), ('ldv', 0, 5), ('lbl', 2), ('stv', 0, 3), ('prc', 0), ('ldv', 0, 3), ('prv', 0), ('ldc', False), ('stv', 0, 1), ('ldv', 0, 0), ('not',), ('jof', 3), ('ldv', 0, 6), ('jmp', 5), ('lbl', 3), ('ldv', 0, 1), ('jof', 4), ('ldv', 0, 4), ('jmp', 5), ('lbl', 4), ('ldv', 0, 5), ('lbl', 5), ('stv', 0, 6), ('prc', 1), ('ldv', 0, 5), ('prv', 0), ('prc', 2), ('ldv', 0, 6), ('prv', 0), ('ldv', 0, 0), ('not',), ('jof', 6), ('ldv', 0, 3), ('jmp', 9), ('lbl', 6), ('ldv', 0, 1), ('not',), ('jof', 8), ('ldv', 0, 6), ('jmp', 9), ('lbl', 8), ('ldc', True), ('jof', 7), ('ldc', 5), ('jmp', 9), ('lbl', 7), ('ldv', 0, 6), ('lbl', 9), ('prv', 0), ('prc', 3), ('ldv', 0, 0), ('not',), ('jof', 10), ('ldv', 0, 3), ('jmp', 13), ('lbl', 10), ('ldv', 0, 1), ('jof', 12), ('ldv', 0, 6), ('jmp', 13), ('lbl', 12), ('ldc', True), ('jof', 11), ('ldc', 5), ('jmp', 13), ('lbl', 11), ('ldv', 0, 6), ('lbl', 13), ('prv', 0), ('prc', 4), ('ldc', False), ('jof', 14), ('ldv', 0, 3), ('jmp', 17), ('lbl', 14), ('ldc', False), ('jof', 16), ('ldc', 4), ('jmp', 17), ('lbl', 16), ('ldc', True), ('jof', 15), ('ldc', 8), ('jmp', 17), ('lbl', 15), ('ldv', 0, 6), ('lbl', 17), ('prv', 0), ('prc', 5), ('ldc', False), ('jof', 18), ('ldc', 20), ('jmp', 21), ('lbl', 18), ('ldc', True), ('jof', 20), ('ldc', 4), ('jmp', 21), ('lbl', 20), ('ldc', True), ('jof', 19), ('ldc', 8), ('jmp', 21), ('lbl', 19), ('ldc', 10), ('lbl', 21), ('prv', 0), ('prc', 6), ('ldc', False), ('jof', 22), ('ldv', 0, 3), ('jmp', 24), ('lbl', 22), ('ldc', True), ('jof', 23), ('ldc', 2), ('jmp', 24), ('lbl', 23), ('ldc', 3), ('lbl', 24), ('prv', 0), ('prc', 7), ('ldc', True), ('jof', 25), ('ldv', 0, 3), ('jmp', 28), ('lbl', 25), ('ldc', True), ('jof', 27), ('ldc', 4), ('jmp', 28), ('lbl', 27), ('ldc', True), ('jof', 26), ('ldc', 8), ('jmp', 28), ('lbl', 26), ('ldv', 0, 6), ('lbl', 28), ('prv', 0), ('dlc', 7), ('end',)]
+----------------------------
 ------ Running Code ------
 Tem que ser 20
 20

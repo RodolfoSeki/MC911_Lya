@@ -1,4 +1,21 @@
 Generating LALR tables
+---------- Input -----------
+dcl c, d int;
+dcl v array[1:5, 1:5] int;
+do
+  for c = 1 to 5;
+    do
+      for d = 1 to 5;
+          v[c,d] = c * d;
+    od;
+	print(v[c], "\n");
+od;
+
+----------------------------
+------ Code generated ------
+H: ['\n']
+Code: [('stp',), ('alc', 27), ('ldc', 1), ('stv', 0, 0), ('lbl', 1), ('ldc', 1), ('stv', 0, 1), ('lbl', 2), ('ldr', 0, 2), ('ldv', 0, 1), ('ldc', 1), ('sub',), ('idx', 1), ('ldv', 0, 0), ('ldc', 1), ('sub',), ('idx', 5), ('ldv', 0, 0), ('ldv', 0, 1), ('mul',), ('smv', 1), ('ldv', 0, 1), ('ldc', 5), ('les',), ('jof', 3), ('ldv', 0, 1), ('ldc', 1), ('add',), ('stv', 0, 1), ('jmp', 2), ('lbl', 3), ('ldr', 0, 2), ('ldv', 0, 0), ('ldc', 1), ('sub',), ('idx', 5), ('lmv', 5), ('prt', 5), ('prc', 0), ('ldv', 0, 0), ('ldc', 5), ('les',), ('jof', 4), ('ldv', 0, 0), ('ldc', 1), ('add',), ('stv', 0, 0), ('jmp', 1), ('lbl', 4), ('dlc', 27), ('end',)]
+----------------------------
 ------ Running Code ------
 [1, 2, 3, 4, 5]
 [2, 4, 6, 8, 10]

@@ -1,4 +1,49 @@
 Generating LALR tables
+---------- Input -----------
+/* Bubble sort code: */
+ 
+dcl v array[0:100] int;
+dcl n, c, d, swap  int;
+
+n = 10;
+v[0] = 28;
+v[1] = 40;
+v[2] = 28;
+v[3] = 200;
+v[4] = 2;
+v[5] = 85;
+v[6] = 94;
+v[7] = 34;
+v[8] = 20;
+v[9] = 22;
+print("Unordered Array:\n");
+do
+  for c = 0 to n-1;
+		print(v[c]);
+	od;
+do
+  for c = 0 to n-2;
+    do
+      for d = 0 to n-c-2;
+        // For decreasing order use "<"    
+        if v[d] > v[d+1] then
+          swap   = v[d];
+          v[d]   = v[d+1];
+          v[d+1] = swap;
+        fi;
+    od;
+od;
+print("Sorted list:\n");
+do
+  for c = 0 to n-1;
+		print(v[c]);
+	od;
+
+----------------------------
+------ Code generated ------
+H: ['Unordered Array:\n', 'Sorted list:\n']
+Code: [('stp',), ('alc', 105), ('ldc', 10), ('stv', 0, 101), ('ldr', 0, 0), ('ldc', 0), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 28), ('smv', 1), ('ldr', 0, 0), ('ldc', 1), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 40), ('smv', 1), ('ldr', 0, 0), ('ldc', 2), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 28), ('smv', 1), ('ldr', 0, 0), ('ldc', 3), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 200), ('smv', 1), ('ldr', 0, 0), ('ldc', 4), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 2), ('smv', 1), ('ldr', 0, 0), ('ldc', 5), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 85), ('smv', 1), ('ldr', 0, 0), ('ldc', 6), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 94), ('smv', 1), ('ldr', 0, 0), ('ldc', 7), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 34), ('smv', 1), ('ldr', 0, 0), ('ldc', 8), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 20), ('smv', 1), ('ldr', 0, 0), ('ldc', 9), ('ldc', 0), ('sub',), ('idx', 1), ('ldc', 22), ('smv', 1), ('prc', 0), ('ldc', 0), ('stv', 0, 102), ('lbl', 1), ('ldr', 0, 0), ('ldv', 0, 102), ('ldc', 0), ('sub',), ('idx', 1), ('grc',), ('prv', 0), ('ldv', 0, 102), ('ldv', 0, 101), ('ldc', 1), ('sub',), ('les',), ('jof', 2), ('ldv', 0, 102), ('ldc', 1), ('add',), ('stv', 0, 102), ('jmp', 1), ('lbl', 2), ('ldc', 0), ('stv', 0, 102), ('lbl', 3), ('ldc', 0), ('stv', 0, 103), ('lbl', 4), ('ldr', 0, 0), ('ldv', 0, 103), ('ldc', 0), ('sub',), ('idx', 1), ('grc',), ('ldr', 0, 0), ('ldv', 0, 103), ('ldc', 1), ('add',), ('ldc', 0), ('sub',), ('idx', 1), ('grc',), ('grt',), ('jof', 5), ('ldr', 0, 0), ('ldv', 0, 103), ('ldc', 0), ('sub',), ('idx', 1), ('grc',), ('stv', 0, 104), ('ldr', 0, 0), ('ldv', 0, 103), ('ldc', 0), ('sub',), ('idx', 1), ('ldr', 0, 0), ('ldv', 0, 103), ('ldc', 1), ('add',), ('ldc', 0), ('sub',), ('idx', 1), ('grc',), ('smv', 1), ('ldr', 0, 0), ('ldv', 0, 103), ('ldc', 1), ('add',), ('ldc', 0), ('sub',), ('idx', 1), ('ldv', 0, 104), ('smv', 1), ('jmp', 6), ('lbl', 5), ('lbl', 6), ('ldv', 0, 103), ('ldv', 0, 101), ('ldv', 0, 102), ('sub',), ('ldc', 2), ('sub',), ('les',), ('jof', 7), ('ldv', 0, 103), ('ldc', 1), ('add',), ('stv', 0, 103), ('jmp', 4), ('lbl', 7), ('ldv', 0, 102), ('ldv', 0, 101), ('ldc', 2), ('sub',), ('les',), ('jof', 8), ('ldv', 0, 102), ('ldc', 1), ('add',), ('stv', 0, 102), ('jmp', 3), ('lbl', 8), ('prc', 1), ('ldc', 0), ('stv', 0, 102), ('lbl', 9), ('ldr', 0, 0), ('ldv', 0, 102), ('ldc', 0), ('sub',), ('idx', 1), ('grc',), ('prv', 0), ('ldv', 0, 102), ('ldv', 0, 101), ('ldc', 1), ('sub',), ('les',), ('jof', 10), ('ldv', 0, 102), ('ldc', 1), ('add',), ('stv', 0, 102), ('jmp', 9), ('lbl', 10), ('dlc', 105), ('end',)]
+----------------------------
 ------ Running Code ------
 Unordered Array:
 28

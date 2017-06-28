@@ -1,4 +1,28 @@
 Generating LALR tables
+---------- Input -----------
+dcl a, b, c int = 3;
+dcl x ref int = -> a;
+dcl y ref int = -> b;
+dcl z ref int = -> c;
+
+print(x);
+print(->a);
+print(x->);
+print(a);
+print(y);
+print(->b);
+print(y->);
+print(b);
+print(z);
+print(->c);
+print(z->);
+print(c);
+
+----------------------------
+------ Code generated ------
+H: []
+Code: [('stp',), ('alc', 6), ('ldc', 3), ('stv', 0, 0), ('ldc', 3), ('stv', 0, 1), ('ldc', 3), ('stv', 0, 2), ('ldr', 0, 0), ('stv', 0, 3), ('ldr', 0, 1), ('stv', 0, 4), ('ldr', 0, 2), ('stv', 0, 5), ('ldv', 0, 3), ('prv', 0), ('ldr', 0, 0), ('prv', 0), ('ldv', 0, 3), ('grc',), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('ldv', 0, 4), ('prv', 0), ('ldr', 0, 1), ('prv', 0), ('ldv', 0, 4), ('grc',), ('prv', 0), ('ldv', 0, 1), ('prv', 0), ('ldv', 0, 5), ('prv', 0), ('ldr', 0, 2), ('prv', 0), ('ldv', 0, 5), ('grc',), ('prv', 0), ('ldv', 0, 2), ('prv', 0), ('dlc', 6), ('end',)]
+----------------------------
 ------ Running Code ------
 0
 0

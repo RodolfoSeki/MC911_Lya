@@ -1,4 +1,24 @@
 Generating LALR tables
+---------- Input -----------
+// test declaration of variables
+dcl x, y, z int = 30;
+print(x, y, z);
+// test declaration of string constant
+dcl s, t chars[9] = "Cachorro";
+print(s,' ', t, ' ');
+
+// test declaration of reference
+dcl k ref int = -> x;
+print(k);
+print(->x);
+print(k->);
+print(x);
+
+----------------------------
+------ Code generated ------
+H: ['Cachorro']
+Code: [('stp',), ('alc', 22), ('ldc', 30), ('stv', 0, 0), ('ldc', 30), ('stv', 0, 1), ('ldc', 30), ('stv', 0, 2), ('ldv', 0, 0), ('prv', 0), ('ldv', 0, 1), ('prv', 0), ('ldv', 0, 2), ('prv', 0), ('ldr', 0, 3), ('sts', 0), ('ldr', 0, 12), ('sts', 0), ('ldr', 0, 3), ('prs',), ('ldc', 32), ('prv', 1), ('ldr', 0, 12), ('prs',), ('ldc', 32), ('prv', 1), ('ldr', 0, 0), ('stv', 0, 21), ('ldv', 0, 21), ('prv', 0), ('ldr', 0, 0), ('prv', 0), ('ldv', 0, 21), ('grc',), ('prv', 0), ('ldv', 0, 0), ('prv', 0), ('dlc', 22), ('end',)]
+----------------------------
 ------ Running Code ------
 30
 30

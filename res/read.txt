@@ -1,4 +1,32 @@
 Generating LALR tables
+---------- Input -----------
+dcl a, c int, b array[1:4] int;
+dcl s chars[10];
+
+print("Leitura de inteiro\n");
+print("Digite um valor:\n");
+read(a);
+print("Voce digitou ", a, "\n");
+
+print("Leitura de string\n");
+print("Digite uma string:\n");
+read(s);
+print("Voce digitou ", s, "\n");
+
+print("Leitura de vetor\n");
+print("Digite 4 valores:\n");
+do
+	for c = 1 to 4;
+		read(b[c]);
+od;
+print("Voce digitou ", b, "\n");
+
+
+----------------------------
+------ Code generated ------
+H: ['Leitura de inteiro\n', 'Digite um valor:\n', 'Voce digitou ', '\n', 'Leitura de string\n', 'Digite uma string:\n', 'Voce digitou ', '\n', 'Leitura de vetor\n', 'Digite 4 valores:\n', 'Voce digitou ', '\n']
+Code: [('stp',), ('alc', 16), ('prc', 0), ('prc', 1), ('rdv',), ('stv', 0, 0), ('prc', 2), ('ldv', 0, 0), ('prv', 0), ('prc', 3), ('prc', 4), ('prc', 5), ('ldr', 0, 6), ('rds',), ('prc', 6), ('ldr', 0, 6), ('prs',), ('prc', 7), ('prc', 8), ('prc', 9), ('ldc', 1), ('stv', 0, 1), ('lbl', 1), ('ldr', 0, 2), ('ldv', 0, 1), ('ldc', 1), ('sub',), ('idx', 1), ('rdv',), ('smv', 1), ('ldv', 0, 1), ('ldc', 4), ('les',), ('jof', 2), ('ldv', 0, 1), ('ldc', 1), ('add',), ('stv', 0, 1), ('jmp', 1), ('lbl', 2), ('prc', 10), ('ldr', 0, 2), ('lmv', 4), ('prt', 4), ('prc', 11), ('dlc', 16), ('end',)]
+----------------------------
 ------ Running Code ------
 Leitura de inteiro
 Digite um valor:
